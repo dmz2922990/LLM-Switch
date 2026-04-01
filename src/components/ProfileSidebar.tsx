@@ -84,11 +84,6 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
     }
   };
 
-  const toggleLanguage = () => {
-    const newLang = currentLang === "zh-CN" ? "en" : "zh-CN";
-    changeLanguage(newLang);
-    window.location.reload();
-  };
 
   return (
     <div className="sidebar">
@@ -171,9 +166,10 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
       </div>
 
       <div className="sidebar-footer">
-        <button className="btn-secondary btn-sm" onClick={toggleLanguage}>
-          {currentLang === "zh-CN" ? "English" : "中文"}
-        </button>
+        <select value={currentLang} onChange={(e) => { changeLanguage(e.target.value); window.location.reload(); }} className="lang-select">
+          <option value="zh-CN">中文</option>
+          <option value="en">English</option>
+        </select>
       </div>
     </div>
   );

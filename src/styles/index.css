@@ -131,7 +131,7 @@ input:focus, select:focus {
   padding: 4px 8px;
   font-size: 12px;
   cursor: pointer;
-  min-width: 80px;
+  width: auto;
 }
 
 .profile-item {

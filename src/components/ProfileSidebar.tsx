@@ -7,9 +7,10 @@ interface Props {
   selectedId: string | null;
   onSelect: (id: string) => void;
   onRefresh: () => void;
+  onSwitchActive: (id: string) => void;
 }
 
-export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh }: Props) {
+export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSwitchActive }: Props) {
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState("");
   const [renaming, setRenaming] = useState<string | null>(null);
@@ -33,6 +34,7 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh }: Pr
   const handleSwitch = async (id: string) => {
     try {
       await api.profile.setActive(id);
+      onSwitchActive(id);
       onRefresh();
     } catch (e: any) {
       alert(e.toString());

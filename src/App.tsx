@@ -45,6 +45,7 @@ function App() {
         selectedId={selectedProfileId}
         onSelect={setSelectedProfileId}
         onRefresh={refresh}
+        onSwitchActive={setSelectedProfileId}
       />
       <div className="main-content">
         <div className="main-header">

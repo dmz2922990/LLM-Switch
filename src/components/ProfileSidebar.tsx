@@ -166,7 +166,7 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
       </div>
 
       <div className="sidebar-footer">
-        <select value={currentLang} onChange={(e) => { changeLanguage(e.target.value); window.location.reload(); }} className="lang-select">
+        <select value={currentLang} onChange={(e) => changeLanguage(e.target.value)} className="lang-select">
           <option value="zh-CN">中文</option>
           <option value="en">English</option>
         </select>

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import Editor from "@monaco-editor/react";
 import type { Profile } from "../types";
 import { api } from "../api";
@@ -9,6 +10,7 @@ interface Props {
 }
 
 export function SettingsEditor({ profile, onSaved }: Props) {
+  const { t } = useTranslation();
   const [content, setContent] = useState(profile.settings_json);
   const [savedContent, setSavedContent] = useState(profile.settings_json);
   const [error, setError] = useState<string | null>(null);
@@ -26,7 +28,7 @@ export function SettingsEditor({ profile, onSaved }: Props) {
     try {
       JSON.parse(content);
     } catch {
-      setError("JSON 格式无效，请检查语法");
+      setError(t("editor.invalidJson"));
       return;
     }
     try {
@@ -37,7 +39,7 @@ export function SettingsEditor({ profile, onSaved }: Props) {
     } catch (e: any) {
       setError(e.toString());
     }
-  }, [content, profile.id, onSaved]);
+  }, [content, profile.id, onSaved, t]);
 
   const handleFormat = () => {
     try {
@@ -45,7 +47,7 @@ export function SettingsEditor({ profile, onSaved }: Props) {
       setContent(formatted);
       setError(null);
     } catch {
-      setError("无法格式化：JSON 格式无效");
+      setError(t("editor.formatFailed"));
     }
   };
 
@@ -57,17 +59,17 @@ export function SettingsEditor({ profile, onSaved }: Props) {
     <div className="editor-container" style={{ display: "flex", flexDirection: "column" }}>
       <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 24px", borderBottom: "1px solid var(--border)" }}>
         <button className="btn-primary btn-sm" onClick={handleSave} disabled={!hasChanges}>
-          保存
+          {t("common.save")}
         </button>
         <button className="btn-secondary btn-sm" onClick={handleFormat}>
-          格式化
+          {t("editor.format")}
         </button>
         {hasChanges && (
-          <span style={{ fontSize: 12, color: "var(--warning)" }}>未保存的修改</span>
+          <span style={{ fontSize: 12, color: "var(--warning)" }}>{t("editor.unsaved")}</span>
         )}
         {error && <span style={{ fontSize: 12, color: "var(--danger)" }}>{error}</span>}
         {profile.is_active && (
-          <span style={{ fontSize: 12, color: "var(--accent)", marginLeft: "auto" }}>活跃档案 — 保存后自动生效</span>
+          <span style={{ fontSize: 12, color: "var(--accent)", marginLeft: "auto" }}>{t("editor.activeHint")}</span>
         )}
       </div>
       <div style={{ flex: 1 }}>

@@ -81,7 +81,7 @@ pub async fn test_saved_host(pool: tauri::State<'_, SqlitePool>, host_id: String
     let host = host_service::get_by_id(&pool, &host_id).await?;
     let password = host_service::get_password(&pool, &host_id).await.map_err(|e| {
         if e.contains("Decryption failed") {
-            "密码解密失败，密钥可能已变更。请编辑主机重新输入密码。".to_string()
+            "ERROR:DECRYPT_FAILED".to_string()
         } else {
             e
         }

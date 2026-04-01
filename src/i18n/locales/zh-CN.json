@@ -1,0 +1,72 @@
+{
+  "common": {
+    "cancel": "取消",
+    "confirm": "确认",
+    "save": "保存",
+    "edit": "编辑",
+    "delete": "删除",
+    "copy": "复制",
+    "rename": "重命名",
+    "test": "测试",
+    "success": "成功",
+    "failed": "失败",
+    "loading": "加载中..."
+  },
+  "tabs": {
+    "editor": "配置编辑",
+    "sync": "远程同步",
+    "hosts": "主机管理"
+  },
+  "sidebar": {
+    "title": "配置档案",
+    "newProfile": "新建",
+    "profileName": "档案名称",
+    "createFirst": "创建第一个",
+    "noProfiles": "尚未创建配置档案",
+    "active": "活跃",
+    "switch": "切换",
+    "confirmDelete": "确认删除此档案？",
+    "confirmCopy": "确认复制此档案？",
+    "language": "语言"
+  },
+  "editor": {
+    "invalidJson": "JSON 格式无效，请检查语法",
+    "formatFailed": "无法格式化：JSON 格式无效",
+    "format": "格式化",
+    "unsaved": "未保存的修改",
+    "activeHint": "活跃档案 — 保存后自动生效"
+  },
+  "sync": {
+    "title": "远程同步",
+    "selectProfile": "选择配置档案",
+    "selectHost": "选择目标主机",
+    "pleaseAddHost": "请先在「主机管理」中添加远程主机",
+    "syncing": "同步中...",
+    "syncButton": "同步",
+    "syncHistory": "同步历史",
+    "syncResult": "同步结果",
+    "noRecords": "暂无同步记录"
+  },
+  "host": {
+    "title": "远程主机",
+    "addHost": "添加主机",
+    "editHost": "编辑主机",
+    "noHosts": "尚未添加远程主机",
+    "name": "名称",
+    "address": "地址",
+    "port": "端口",
+    "username": "用户名",
+    "authType": "认证方式",
+    "password": "密码",
+    "sshKey": "SSH 密钥",
+    "keyPath": "密钥路径",
+    "remotePath": "远程路径",
+    "testConnection": "测试连接",
+    "connected": "连接成功",
+    "confirmDelete": "确认删除此主机？同步历史也将被清除。",
+    "confirmAction": "确认操作"
+  },
+  "errors": {
+    "decryptFailed": "密码解密失败，密钥可能已变更。请编辑主机重新输入密码。"
+  }
+}

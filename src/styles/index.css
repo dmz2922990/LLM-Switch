@@ -98,7 +98,7 @@ input:focus, select:focus {
 }
 
 .sidebar-header {
-  padding: 16px;
+  padding: 16px 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -106,7 +106,7 @@ input:focus, select:focus {
 }
 
 .sidebar-header h2 {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
 }
 
@@ -116,29 +116,44 @@ input:focus, select:focus {
   padding: 8px;
 }
 
+.sidebar-footer {
+  padding: 12px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: center;
+}
+
 .profile-item {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   padding: 10px 12px;
   border-radius: var(--radius);
   cursor: pointer;
   transition: background 0.15s;
-  gap: 10px;
+  gap: 6px;
   margin-bottom: 2px;
+}
+
+.profile-item-top {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.profile-item-actions {
+  display: flex;
+  gap: 4px;
 }
 
 .profile-item:hover { background: var(--bg-hover); }
 .profile-item.active { background: var(--bg-surface); border-left: 3px solid var(--accent); }
 
 .profile-item .name {
-  flex: 1;
   font-size: 13px;
   white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
 }
 
-.profile-item .badge {
+.profile-item .badge-btn {
   font-size: 12px;
   padding: 4px 10px;
   border-radius: 4px;
@@ -147,6 +162,7 @@ input:focus, select:focus {
   font-weight: 600;
   border: none;
   line-height: 1;
+  cursor: default;
 }
 
 .main-content {

@@ -1,6 +1,8 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Profile } from "../types";
 import { api } from "../api";
+import { changeLanguage, getCurrentLanguage } from "../i18n";
 
 interface Props {
   profiles: Profile[];
@@ -11,12 +13,16 @@ interface Props {
 }
 
 export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSwitchActive }: Props) {
+  const { t } = useTranslation();
   const [showNew, setShowNew] = useState(false);
   const [newName, setNewName] = useState("");
   const [renaming, setRenaming] = useState<string | null>(null);
   const [renameVal, setRenameVal] = useState("");
   const [error, setError] = useState("");
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [confirmCopyId, setConfirmCopyId] = useState<string | null>(null);
+
+  const currentLang = getCurrentLanguage();
 
   const handleCreate = async () => {
     if (!newName.trim()) return;
@@ -41,10 +47,10 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
     }
   };
 
-  const handleCopy = async (id: string, e: React.MouseEvent) => {
-    e.stopPropagation();
+  const handleCopy = async (id: string) => {
     try {
       await api.profile.copy(id);
+      setConfirmCopyId(null);
       onRefresh();
     } catch (err: any) {
       alert(err.toString());
@@ -78,25 +84,31 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
     }
   };
 
+  const toggleLanguage = () => {
+    const newLang = currentLang === "zh-CN" ? "en" : "zh-CN";
+    changeLanguage(newLang);
+    window.location.reload();
+  };
+
   return (
     <div className="sidebar">
       <div className="sidebar-header">
-        <h2>配置档案</h2>
-        <button className="btn-primary btn-sm" onClick={() => setShowNew(true)}>+ 新建</button>
+        <h2>{t("sidebar.title")}</h2>
+        <button className="btn-primary btn-sm" onClick={() => setShowNew(true)}>+ {t("sidebar.newProfile")}</button>
       </div>
 
       {showNew && (
         <div style={{ padding: "8px 12px", borderBottom: "1px solid var(--border)" }}>
           <input
-            placeholder="档案名称"
+            placeholder={t("sidebar.profileName")}
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             onKeyDown={(e) => e.key === "Enter" && handleCreate()}
             autoFocus
           />
           <div style={{ display: "flex", gap: 6, marginTop: 6 }}>
-            <button className="btn-primary btn-sm" onClick={handleCreate}>确定</button>
-            <button className="btn-secondary btn-sm" onClick={() => { setShowNew(false); setError(""); }}>取消</button>
+            <button className="btn-primary btn-sm" onClick={handleCreate}>{t("common.confirm")}</button>
+            <button className="btn-secondary btn-sm" onClick={() => { setShowNew(false); setError(""); }}>{t("common.cancel")}</button>
           </div>
           {error && <p style={{ color: "var(--danger)", fontSize: 12, marginTop: 4 }}>{error}</p>}
         </div>
@@ -105,8 +117,8 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
       <div className="profile-list">
         {profiles.length === 0 && (
           <div className="empty-state" style={{ padding: 32 }}>
-            <p>尚未创建配置档案</p>
-            <button className="btn-primary btn-sm" onClick={() => setShowNew(true)}>创建第一个</button>
+            <p>{t("sidebar.noProfiles")}</p>
+            <button className="btn-primary btn-sm" onClick={() => setShowNew(true)}>{t("sidebar.createFirst")}</button>
           </div>
         )}
         {profiles.map((p) => (
@@ -115,37 +127,53 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
             className={`profile-item ${selectedId === p.id ? "active" : ""}`}
             onClick={() => onSelect(p.id)}
           >
-            {renaming === p.id ? (
-              <input
-                value={renameVal}
-                onChange={(e) => setRenameVal(e.target.value)}
-                onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") setRenaming(null); }}
-                onBlur={commitRename}
-                autoFocus
-                onClick={(e) => e.stopPropagation()}
-                style={{ flex: 1, padding: "2px 6px", fontSize: 12 }}
-              />
-            ) : (
-              <span className="name">{p.name}</span>
-            )}
-            {p.is_active && <span className="badge">活跃</span>}
-            <div style={{ display: "flex", gap: 2 }} onClick={(e) => e.stopPropagation()}>
-              {!p.is_active && (
-                <button className="btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handleSwitch(p.id); }}>切换</button>
+            <div className="profile-item-top">
+              {renaming === p.id ? (
+                <input
+                  value={renameVal}
+                  onChange={(e) => setRenameVal(e.target.value)}
+                  onKeyDown={(e) => { if (e.key === "Enter") commitRename(); if (e.key === "Escape") setRenaming(null); }}
+                  onBlur={commitRename}
+                  autoFocus
+                  onClick={(e) => e.stopPropagation()}
+                  style={{ flex: 1, padding: "2px 6px", fontSize: 12 }}
+                />
+              ) : (
+                <span className="name">{p.name}</span>
               )}
-              <button className="btn-secondary btn-sm" onClick={(e) => startRename(p, e)} title="重命名">✎</button>
-              <button className="btn-secondary btn-sm" onClick={(e) => handleCopy(p.id, e)} title="复制">⧉</button>
-              {confirmDeleteId === p.id ? (
+            </div>
+            <div className="profile-item-actions">
+              {p.is_active ? (
+                <button className="badge-btn" disabled>{t("sidebar.active")}</button>
+              ) : (
+                <button className="btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handleSwitch(p.id); }}>{t("sidebar.switch")}</button>
+              )}
+              <button className="btn-secondary btn-sm" onClick={(e) => startRename(p, e)} title={t("common.rename")}>✎</button>
+              {confirmCopyId === p.id ? (
                 <>
-                  <button className="btn-danger btn-sm" onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}>确认</button>
-                  <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); }}>取消</button>
+                  <button className="btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handleCopy(p.id); }}>{t("common.confirm")}</button>
+                  <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setConfirmCopyId(null); }}>{t("common.cancel")}</button>
                 </>
               ) : (
-                <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(p.id); }} title="删除">✕</button>
+                <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setConfirmCopyId(p.id); }} title={t("common.copy")}>⧉</button>
+              )}
+              {confirmDeleteId === p.id ? (
+                <>
+                  <button className="btn-danger btn-sm" onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}>{t("common.confirm")}</button>
+                  <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); }}>{t("common.cancel")}</button>
+                </>
+              ) : (
+                <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(p.id); }} title={t("common.delete")}>✕</button>
               )}
             </div>
           </div>
         ))}
+      </div>
+
+      <div className="sidebar-footer">
+        <button className="btn-secondary btn-sm" onClick={toggleLanguage}>
+          {currentLang === "zh-CN" ? "English" : "中文"}
+        </button>
       </div>
     </div>
   );

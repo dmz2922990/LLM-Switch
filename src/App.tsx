@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useTranslation } from "react-i18next";
 import type { Profile, Host, TabId } from "./types";
 import { api } from "./api";
 import { ProfileSidebar } from "./components/ProfileSidebar";
@@ -7,6 +8,7 @@ import { HostManager } from "./components/HostManager";
 import { SyncPanel } from "./components/SyncPanel";
 
 function App() {
+  const { t } = useTranslation();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [hosts, setHosts] = useState<Host[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
@@ -35,7 +37,7 @@ function App() {
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId) ?? null;
 
   if (loading) {
-    return <div className="empty-state"><p>Loading...</p></div>;
+    return <div className="empty-state"><p>{t("common.loading")}</p></div>;
   }
 
   return (
@@ -53,13 +55,13 @@ function App() {
         </div>
         <div className="tabs">
           <button className={`tab ${activeTab === "editor" ? "active" : ""}`} onClick={() => setActiveTab("editor")}>
-            配置编辑
+            {t("tabs.editor")}
           </button>
           <button className={`tab ${activeTab === "sync" ? "active" : ""}`} onClick={() => setActiveTab("sync")}>
-            远程同步
+            {t("tabs.sync")}
           </button>
           <button className={`tab ${activeTab === "hosts" ? "active" : ""}`} onClick={() => setActiveTab("hosts")}>
-            主机管理
+            {t("tabs.hosts")}
           </button>
         </div>
         <div className="main-body">
@@ -68,7 +70,7 @@ function App() {
               <SettingsEditor profile={selectedProfile} onSaved={refresh} />
             ) : (
               <div className="empty-state">
-                <p>请选择或创建一个配置档案</p>
+                <p>{t("sidebar.noProfiles")}</p>
               </div>
             )
           )}

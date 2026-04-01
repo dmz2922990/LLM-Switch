@@ -1,0 +1,72 @@
+{
+  "common": {
+    "cancel": "Cancel",
+    "confirm": "Confirm",
+    "save": "Save",
+    "edit": "Edit",
+    "delete": "Delete",
+    "copy": "Copy",
+    "rename": "Rename",
+    "test": "Test",
+    "success": "Success",
+    "failed": "Failed",
+    "loading": "Loading..."
+  },
+  "tabs": {
+    "editor": "Config Editor",
+    "sync": "Remote Sync",
+    "hosts": "Host Manager"
+  },
+  "sidebar": {
+    "title": "Profiles",
+    "newProfile": "New",
+    "profileName": "Profile name",
+    "createFirst": "Create First",
+    "noProfiles": "No profiles created yet",
+    "active": "Active",
+    "switch": "Switch",
+    "confirmDelete": "Delete this profile?",
+    "confirmCopy": "Copy this profile?",
+    "language": "Language"
+  },
+  "editor": {
+    "invalidJson": "Invalid JSON format, please check syntax",
+    "formatFailed": "Cannot format: Invalid JSON",
+    "format": "Format",
+    "unsaved": "Unsaved changes",
+    "activeHint": "Active profile — takes effect after saving"
+  },
+  "sync": {
+    "title": "Remote Sync",
+    "selectProfile": "Select Profile",
+    "selectHost": "Select Target Host",
+    "pleaseAddHost": "Please add a remote host in Host Manager first",
+    "syncing": "Syncing...",
+    "syncButton": "Sync",
+    "syncHistory": "Sync History",
+    "syncResult": "Sync Result",
+    "noRecords": "No sync records"
+  },
+  "host": {
+    "title": "Remote Hosts",
+    "addHost": "Add Host",
+    "editHost": "Edit Host",
+    "noHosts": "No remote hosts added yet",
+    "name": "Name",
+    "address": "Address",
+    "port": "Port",
+    "username": "Username",
+    "authType": "Auth Type",
+    "password": "Password",
+    "sshKey": "SSH Key",
+    "keyPath": "Key Path",
+    "remotePath": "Remote Path",
+    "testConnection": "Test Connection",
+    "connected": "Connected",
+    "confirmDelete": "Delete this host? Sync history will also be cleared.",
+    "confirmAction": "Confirm Action"
+  },
+  "errors": {
+    "decryptFailed": "Password decryption failed. The key may have changed. Please edit the host and re-enter the password."
+  }
+}

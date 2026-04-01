@@ -1,4 +1,5 @@
 import { useState, type Dispatch, type SetStateAction } from "react";
+import { useTranslation } from "react-i18next";
 import type { Host } from "../types";
 import { api } from "../api";
 
@@ -23,14 +24,15 @@ function ConfirmDialog({ message, onConfirm, onCancel }: {
   onConfirm: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="dialog-overlay" onClick={onCancel}>
       <div className="dialog" onClick={(e) => e.stopPropagation()}>
-        <h3>确认操作</h3>
+        <h3>{t("host.confirmAction")}</h3>
         <p style={{ fontSize: 14, lineHeight: 1.6 }}>{message}</p>
         <div className="dialog-actions">
-          <button className="btn-secondary" onClick={onCancel}>取消</button>
-          <button className="btn-danger" onClick={onConfirm}>确认删除</button>
+          <button className="btn-secondary" onClick={onCancel}>{t("common.cancel")}</button>
+          <button className="btn-danger" onClick={onConfirm}>{t("common.confirm")}</button>
         </div>
       </div>
     </div>
@@ -44,53 +46,54 @@ function HostForm({ editing, form, setForm, onSave, onCancel }: {
   onSave: () => void;
   onCancel: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="dialog-overlay" onClick={onCancel}>
       <div className="dialog" onClick={(e) => e.stopPropagation()}>
-        <h3>{editing ? "编辑主机" : "添加主机"}</h3>
+        <h3>{editing ? t("host.editHost") : t("host.addHost")}</h3>
         <div className="form-group">
-          <label>名称</label>
+          <label>{t("host.name")}</label>
           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
         </div>
         <div style={{ display: "flex", gap: 8 }}>
           <div className="form-group" style={{ flex: 3 }}>
-            <label>地址</label>
+            <label>{t("host.address")}</label>
             <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
           </div>
           <div className="form-group" style={{ flex: 1 }}>
-            <label>端口</label>
+            <label>{t("host.port")}</label>
             <input type="number" value={form.port} onChange={(e) => setForm({ ...form, port: Number(e.target.value) })} />
           </div>
         </div>
         <div className="form-group">
-          <label>用户名</label>
+          <label>{t("host.username")}</label>
           <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
         </div>
         <div className="form-group">
-          <label>认证方式</label>
+          <label>{t("host.authType")}</label>
           <select value={form.auth_type} onChange={(e) => setForm({ ...form, auth_type: e.target.value as "password" | "key" })}>
-            <option value="password">密码</option>
-            <option value="key">SSH 密钥</option>
+            <option value="password">{t("host.password")}</option>
+            <option value="key">{t("host.sshKey")}</option>
           </select>
         </div>
         {form.auth_type === "password" ? (
           <div className="form-group">
-            <label>密码</label>
+            <label>{t("host.password")}</label>
             <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
           </div>
         ) : (
           <div className="form-group">
-            <label>密钥路径</label>
+            <label>{t("host.keyPath")}</label>
             <input value={form.key_path} onChange={(e) => setForm({ ...form, key_path: e.target.value })} placeholder="~/.ssh/id_rsa" />
           </div>
         )}
         <div className="form-group">
-          <label>远程路径</label>
+          <label>{t("host.remotePath")}</label>
           <input value={form.remote_path} onChange={(e) => setForm({ ...form, remote_path: e.target.value })} />
         </div>
         <div className="dialog-actions">
-          <button className="btn-secondary" onClick={onCancel}>取消</button>
-          <button className="btn-primary" onClick={onSave}>{editing ? "保存" : "添加"}</button>
+          <button className="btn-secondary" onClick={onCancel}>{t("common.cancel")}</button>
+          <button className="btn-primary" onClick={onSave}>{editing ? t("common.save") : t("host.addHost")}</button>
         </div>
       </div>
     </div>
@@ -98,6 +101,7 @@ function HostForm({ editing, form, setForm, onSave, onCancel }: {
 }
 
 export function HostManager({ hosts, onRefresh }: Props) {
+  const { t } = useTranslation();
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<Host | null>(null);
   const [testing, setTesting] = useState<string | null>(null);
@@ -150,7 +154,12 @@ export function HostManager({ hosts, onRefresh }: Props) {
       await api.host.testSaved(h.id);
       setTestResult((prev) => ({ ...prev, [h.id]: "success" }));
     } catch (e: any) {
-      setTestResult((prev) => ({ ...prev, [h.id]: `failed: ${e}` }));
+      const errorMsg = e.toString();
+      if (errorMsg.includes("ERROR:DECRYPT_FAILED")) {
+        setTestResult((prev) => ({ ...prev, [h.id]: `failed: ${t("errors.decryptFailed")}` }));
+      } else {
+        setTestResult((prev) => ({ ...prev, [h.id]: `failed: ${errorMsg}` }));
+      }
     } finally {
       setTesting(null);
     }
@@ -176,11 +185,11 @@ export function HostManager({ hosts, onRefresh }: Props) {
   return (
     <div className="scroll-area">
       <div style={{ padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ fontSize: 16, fontWeight: 600 }}>远程主机</h2>
-        <button className="btn-primary btn-sm" onClick={() => { resetForm(); setShowAdd(true); }}>+ 添加主机</button>
+        <h2 style={{ fontSize: 16, fontWeight: 600 }}>{t("host.title")}</h2>
+        <button className="btn-primary btn-sm" onClick={() => { resetForm(); setShowAdd(true); }}>+ {t("host.addHost")}</button>
       </div>
       {hosts.length === 0 ? (
-        <div className="empty-state"><p>尚未添加远程主机</p></div>
+        <div className="empty-state"><p>{t("host.noHosts")}</p></div>
       ) : (
         <div className="host-list">
           {hosts.map((h) => (
@@ -190,16 +199,16 @@ export function HostManager({ hosts, onRefresh }: Props) {
                 <div className="host-detail">{h.username}@{h.address}:{h.port} → {h.remote_path}</div>
                 {testResult[h.id] && (
                   <div style={{ fontSize: 12, marginTop: 4, color: testResult[h.id] === "success" ? "var(--success)" : "var(--danger)" }}>
-                    {testResult[h.id] === "success" ? "连接成功" : testResult[h.id]}
+                    {testResult[h.id] === "success" ? t("host.connected") : testResult[h.id]}
                   </div>
                 )}
               </div>
               <div className="host-actions">
                 <button className="btn-secondary btn-sm" onClick={() => handleTest(h)} disabled={testing === h.id}>
-                  测试
+                  {t("common.test")}
                 </button>
-                <button className="btn-secondary btn-sm" onClick={() => startEdit(h)}>编辑</button>
-                <button className="btn-danger btn-sm" onClick={() => setDeletingId(h.id)}>删除</button>
+                <button className="btn-secondary btn-sm" onClick={() => startEdit(h)}>{t("common.edit")}</button>
+                <button className="btn-danger btn-sm" onClick={() => setDeletingId(h.id)}>{t("common.delete")}</button>
               </div>
             </div>
           ))}
@@ -207,7 +216,7 @@ export function HostManager({ hosts, onRefresh }: Props) {
       )}
       {showAdd && <HostForm editing={null} form={form} setForm={setForm} onSave={handleAdd} onCancel={() => { setShowAdd(false); resetForm(); }} />}
       {editing && <HostForm editing={editing} form={form} setForm={setForm} onSave={handleEdit} onCancel={() => { setEditing(null); resetForm(); }} />}
-      {deletingId && <ConfirmDialog message="确认删除此主机？同步历史也将被清除。" onConfirm={() => handleDelete(deletingId)} onCancel={() => setDeletingId(null)} />}
+      {deletingId && <ConfirmDialog message={t("host.confirmDelete")} onConfirm={() => handleDelete(deletingId)} onCancel={() => setDeletingId(null)} />}
     </div>
   );
 }

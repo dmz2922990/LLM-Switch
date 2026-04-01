@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "react-i18next";
 import type { Profile, Host, SyncResult, SyncHistory } from "../types";
 import { api } from "../api";
 
@@ -8,6 +9,7 @@ interface Props {
 }
 
 export function SyncPanel({ profiles, hosts }: Props) {
+  const { t } = useTranslation();
   const [selectedProfile, setSelectedProfile] = useState("");
   const [selectedHosts, setSelectedHosts] = useState<Set<string>>(new Set());
   const [syncing, setSyncing] = useState(false);
@@ -50,20 +52,20 @@ export function SyncPanel({ profiles, hosts }: Props) {
   return (
     <div className="scroll-area">
       <div className="sync-panel">
-        <h2 style={{ fontSize: 16, fontWeight: 600 }}>远程同步</h2>
+        <h2 style={{ fontSize: 16, fontWeight: 600 }}>{t("sync.title")}</h2>
 
         <div className="form-group">
-          <label>选择配置档案</label>
+          <label>{t("sync.selectProfile")}</label>
           <select value={selectedProfile} onChange={(e) => setSelectedProfile(e.target.value)}>
-            <option value="">-- 请选择 --</option>
-            {profiles.map((p) => <option key={p.id} value={p.id}>{p.name} {p.is_active ? "(活跃)" : ""}</option>)}
+            <option value="">-- {t("sync.selectProfile")} --</option>
+            {profiles.map((p) => <option key={p.id} value={p.id}>{p.name} {p.is_active ? `(${t("sidebar.active")})` : ""}</option>)}
           </select>
         </div>
 
         <div>
-          <label style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>选择目标主机</label>
+          <label style={{ fontSize: 12, color: "var(--text-secondary)", marginBottom: 6, display: "block" }}>{t("sync.selectHost")}</label>
           {hosts.length === 0 ? (
-            <p style={{ color: "var(--text-muted)", fontSize: 13 }}>请先在"主机管理"中添加远程主机</p>
+            <p style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("sync.pleaseAddHost")}</p>
           ) : (
             <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {hosts.map((h) => (
@@ -87,20 +89,20 @@ export function SyncPanel({ profiles, hosts }: Props) {
             onClick={handleSync}
             disabled={!selectedProfile || selectedHosts.size === 0 || syncing}
           >
-            {syncing ? "同步中..." : "同步"}
+            {syncing ? t("sync.syncing") : t("sync.syncButton")}
           </button>
-          <button className="btn-secondary" onClick={loadHistory}>同步历史</button>
+          <button className="btn-secondary" onClick={loadHistory}>{t("sync.syncHistory")}</button>
         </div>
 
         {results.length > 0 && (
           <div>
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>同步结果</h3>
+            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{t("sync.syncResult")}</h3>
             {results.map((r, i) => {
               const host = hosts.find((h) => h.id === r.host_id);
               return (
                 <div key={i} className={`sync-result ${r.success ? "success" : "failure"}`}>
                   <span>{r.success ? "✓" : "✕"}</span>
-                  <span>{host?.name ?? r.host_id}: {r.success ? "成功" : r.error_message}</span>
+                  <span>{host?.name ?? r.host_id}: {r.success ? t("common.success") : r.error_message}</span>
                 </div>
               );
             })}
@@ -109,9 +111,9 @@ export function SyncPanel({ profiles, hosts }: Props) {
 
         {showHistory && (
           <div>
-            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>同步历史</h3>
+            <h3 style={{ fontSize: 14, fontWeight: 600, marginBottom: 8 }}>{t("sync.syncHistory")}</h3>
             {history.length === 0 ? (
-              <p style={{ color: "var(--text-muted)", fontSize: 13 }}>暂无同步记录</p>
+              <p style={{ color: "var(--text-muted)", fontSize: 13 }}>{t("sync.noRecords")}</p>
             ) : (
               history.map((h) => (
                 <div key={h.id} style={{ fontSize: 12, padding: "6px 0", borderBottom: "1px solid var(--border)" }}>

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import type { Profile, Host, TabId } from "./types";
 import { api } from "./api";
 import i18n from "./i18n";
@@ -16,6 +17,7 @@ function App() {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<TabId>("editor");
   const [loading, setLoading] = useState(true);
+  const [showAbout, setShowAbout] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -48,6 +50,16 @@ function App() {
   useEffect(() => {
     syncTrayLabels();
   }, [syncTrayLabels]);
+
+  // Listen for show-about event from tray/macOS menu
+  useEffect(() => {
+    const unlistenAbout = listen("show-about", () => setShowAbout(true));
+    const unlistenSwitched = listen("profile-switched", () => refresh());
+    return () => {
+      unlistenAbout.then((fn) => fn());
+      unlistenSwitched.then((fn) => fn());
+    };
+  }, [refresh]);
 
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId) ?? null;
 
@@ -97,6 +109,29 @@ function App() {
           )}
         </div>
       </div>
+
+      {/* About dialog */}
+      {showAbout && (
+        <div className="dialog-overlay" onClick={() => setShowAbout(false)}>
+          <div className="dialog" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center", minWidth: 340 }}>
+            <h3 style={{ marginBottom: 8, fontSize: 20 }}>LLM Switch</h3>
+            <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 12 }}>v1.0.0</p>
+            <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
+              {t("about.description")}
+            </p>
+            <a
+              href="#"
+              onClick={(e) => { e.preventDefault(); invoke("open_github"); }}
+              style={{ color: "var(--accent)", fontSize: 13, textDecoration: "none" }}
+            >
+              https://github.com/dmz2922990/LLM-Switch
+            </a>
+            <div className="dialog-actions" style={{ justifyContent: "center" }}>
+              <button className="btn-primary btn-sm" onClick={() => setShowAbout(false)}>{t("common.confirm")}</button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

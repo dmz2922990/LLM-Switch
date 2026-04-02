@@ -122,6 +122,7 @@ input:focus, select:focus {
 .sidebar-header h2 {
   font-size: 18px;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .profile-list {
@@ -208,6 +209,7 @@ input:focus, select:focus {
 .main-header h1 {
   font-size: 18px;
   font-weight: 600;
+  line-height: 1.2;
 }
 
 .main-body {

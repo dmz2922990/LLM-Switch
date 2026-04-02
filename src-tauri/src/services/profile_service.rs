@@ -102,6 +102,21 @@ fn get_claude_settings_path() -> Result<std::path::PathBuf, String> {
     Ok(home.join(".claude").join("settings.json"))
 }
 
+pub async fn ensure_default_profile(pool: &SqlitePool) -> Result<(), String> {
+    let profiles = list(pool).await?;
+    if !profiles.is_empty() {
+        return Ok(());
+    }
+    let settings_json = read_current_settings_json();
+    let input = CreateProfile {
+        name: "Local".to_string(),
+        settings_json,
+    };
+    let profile = create(pool, input).await?;
+    set_active(pool, &profile.id).await?;
+    Ok(())
+}
+
 fn read_current_settings_json() -> Option<String> {
     let path = get_claude_settings_path().ok()?;
     std::fs::read_to_string(path).ok()

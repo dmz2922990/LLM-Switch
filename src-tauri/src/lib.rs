@@ -62,6 +62,10 @@ pub fn run() {
                 let pool = db::init_pool(&data_dir).await.expect("Failed to init database");
                 handle.manage(pool.clone());
 
+                if let Err(e) = services::profile_service::ensure_default_profile(&pool).await {
+                    eprintln!("Failed to create default profile: {}", e);
+                }
+
                 let labels = tray::TrayLabels {
                     open_window: "Open Main Window".to_string(),
                     about: "About LLM Switch".to_string(),

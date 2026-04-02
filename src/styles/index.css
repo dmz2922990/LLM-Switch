@@ -89,6 +89,7 @@ input:focus, select:focus {
 
 .quick-settings {
   background: var(--bg-secondary);
+  padding: 6px 0;
 }
 
 .quick-settings .form-group {
@@ -129,6 +130,7 @@ input:focus, select:focus {
   flex: 1;
   overflow-y: auto;
   padding: 8px;
+  border-top: 1px solid var(--border);
 }
 
 .sidebar-footer {
@@ -221,8 +223,7 @@ input:focus, select:focus {
 .tabs {
   display: flex;
   gap: 0;
-  border-bottom: 1px solid var(--border);
-  padding: 0 24px;
+  padding: 6px 0;
 }
 
 .tab {

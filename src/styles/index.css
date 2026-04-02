@@ -109,7 +109,6 @@ input:focus, select:focus {
   border-right: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  height: 100vh;
 }
 
 .sidebar-header {

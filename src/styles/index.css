@@ -87,6 +87,21 @@ input:focus, select:focus {
   border-color: var(--accent);
 }
 
+.quick-settings {
+  background: var(--bg-secondary);
+}
+
+.quick-settings .form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.quick-settings input {
+  padding: 6px 10px;
+  font-size: 12px;
+}
+
 .sidebar {
   width: 260px;
   min-width: 260px;

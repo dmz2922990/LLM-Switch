@@ -174,7 +174,7 @@ function App() {
         <div className="dialog-overlay" onClick={() => { setShowAbout(false); setUpdateStatus({ state: "idle" }); }}>
           <div className="dialog" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center", minWidth: 340 }}>
             <h3 style={{ marginBottom: 8, fontSize: 20 }}>LLM Switch</h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 12 }}>v1.0.1</p>
+            <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 12 }}>v1.0.2</p>
             <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
               {t("about.description")}
             </p>

@@ -12,6 +12,26 @@ interface Props {
   onSwitchActive: (id: string) => void;
 }
 
+function ConfirmDialog({ message, onConfirm, onCancel }: {
+  message: string;
+  onConfirm: () => void;
+  onCancel: () => void;
+}) {
+  const { t } = useTranslation();
+  return (
+    <div className="dialog-overlay" onClick={onCancel}>
+      <div className="dialog" onClick={(e) => e.stopPropagation()}>
+        <h3>{t("sidebar.confirmAction")}</h3>
+        <p style={{ fontSize: 14, lineHeight: 1.6 }}>{message}</p>
+        <div className="dialog-actions">
+          <button className="btn-secondary" onClick={onCancel}>{t("common.cancel")}</button>
+          <button className="btn-primary btn-sm" onClick={onConfirm}>{t("common.confirm")}</button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSwitchActive }: Props) {
   const { t } = useTranslation();
   const [showNew, setShowNew] = useState(false);
@@ -19,8 +39,8 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
   const [renaming, setRenaming] = useState<string | null>(null);
   const [renameVal, setRenameVal] = useState("");
   const [error, setError] = useState("");
-  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
-  const [confirmCopyId, setConfirmCopyId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [copyingId, setCopyingId] = useState<string | null>(null);
 
   const currentLang = getCurrentLanguage();
 
@@ -50,7 +70,7 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
   const handleCopy = async (id: string) => {
     try {
       await api.profile.copy(id);
-      setConfirmCopyId(null);
+      setCopyingId(null);
       onRefresh();
     } catch (err: any) {
       alert(err.toString());
@@ -60,7 +80,7 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
   const handleDelete = async (id: string) => {
     try {
       await api.profile.delete(id);
-      setConfirmDeleteId(null);
+      setDeletingId(null);
       onRefresh();
     } catch (err: any) {
       alert(err.toString());
@@ -83,7 +103,6 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
       alert(err.toString());
     }
   };
-
 
   return (
     <div className="sidebar">
@@ -144,22 +163,8 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
                 <button className="btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handleSwitch(p.id); }}>{t("sidebar.switch")}</button>
               )}
               <button className="btn-secondary btn-sm" onClick={(e) => startRename(p, e)} title={t("common.rename")}>✎</button>
-              {confirmCopyId === p.id ? (
-                <>
-                  <button className="btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handleCopy(p.id); }}>{t("common.confirm")}</button>
-                  <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setConfirmCopyId(null); }}>{t("common.cancel")}</button>
-                </>
-              ) : (
-                <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setConfirmCopyId(p.id); }} title={t("common.copy")}>⧉</button>
-              )}
-              {confirmDeleteId === p.id ? (
-                <>
-                  <button className="btn-danger btn-sm" onClick={(e) => { e.stopPropagation(); handleDelete(p.id); }}>{t("common.confirm")}</button>
-                  <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); }}>{t("common.cancel")}</button>
-                </>
-              ) : (
-                <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(p.id); }} title={t("common.delete")}>✕</button>
-              )}
+              <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setCopyingId(p.id); }} title={t("common.copy")}>⧉</button>
+              <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setDeletingId(p.id); }} title={t("common.delete")}>✕</button>
             </div>
           </div>
         ))}
@@ -171,6 +176,21 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
           <option value="en">English</option>
         </select>
       </div>
+
+      {deletingId && (
+        <ConfirmDialog
+          message={t("sidebar.confirmDelete")}
+          onConfirm={() => handleDelete(deletingId)}
+          onCancel={() => setDeletingId(null)}
+        />
+      )}
+      {copyingId && (
+        <ConfirmDialog
+          message={t("sidebar.confirmCopy")}
+          onConfirm={() => handleCopy(copyingId)}
+          onCancel={() => setCopyingId(null)}
+        />
+      )}
     </div>
   );
 }

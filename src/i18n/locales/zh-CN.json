@@ -27,6 +27,7 @@
     "switch": "切换",
     "confirmDelete": "确认删除此档案？",
     "confirmCopy": "确认复制此档案？",
+    "confirmAction": "确认操作",
     "language": "语言"
   },
   "editor": {
@@ -68,5 +69,18 @@
   },
   "errors": {
     "decryptFailed": "密码解密失败，密钥可能已变更。请编辑主机重新输入密码。"
+  },
+  "about": {
+    "description": "Claude Code 多配置文件管理工具"
+  },
+  "tray": {
+    "openWindow": "打开主窗口",
+    "about": "关于 LLM Switch",
+    "quit": "退出"
+  },
+  "tray": {
+    "openWindow": "打开主窗口",
+    "about": "关于 LLM Switch",
+    "quit": "退出"
   }
 }

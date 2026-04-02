@@ -107,3 +107,24 @@ pub async fn list_sync_history(pool: tauri::State<'_, SqlitePool>, profile_id: O
         _ => sync_history_service::list_all(&pool).await,
     }
 }
+
+#[tauri::command]
+pub async fn open_github(app: tauri::AppHandle) -> Result<(), String> {
+    use tauri_plugin_opener::OpenerExt;
+    app.opener()
+        .open_url("https://github.com/dmz2922990/LLM-Switch", None::<&str>)
+        .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn update_tray_labels(
+    app: tauri::AppHandle,
+    tray_state: tauri::State<'_, crate::tray::TrayState>,
+    open_window: String,
+    about: String,
+    quit: String,
+) -> Result<(), String> {
+    let labels = crate::tray::TrayLabels { open_window, about, quit };
+    tray_state.update_labels(&app, labels).await;
+    Ok(())
+}

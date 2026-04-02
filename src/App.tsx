@@ -1,7 +1,9 @@
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
+import { invoke } from "@tauri-apps/api/core";
 import type { Profile, Host, TabId } from "./types";
 import { api } from "./api";
+import i18n from "./i18n";
 import { ProfileSidebar } from "./components/ProfileSidebar";
 import { SettingsEditor } from "./components/SettingsEditor";
 import { HostManager } from "./components/HostManager";
@@ -33,6 +35,19 @@ function App() {
   useEffect(() => {
     refresh();
   }, [refresh]);
+
+  // Sync tray menu labels with current language
+  const syncTrayLabels = useCallback(() => {
+    invoke("update_tray_labels", {
+      openWindow: i18n.t("tray.openWindow"),
+      about: i18n.t("tray.about"),
+      quit: i18n.t("tray.quit"),
+    }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    syncTrayLabels();
+  }, [syncTrayLabels]);
 
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId) ?? null;
 

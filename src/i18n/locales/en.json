@@ -27,6 +27,7 @@
     "switch": "Switch",
     "confirmDelete": "Delete this profile?",
     "confirmCopy": "Copy this profile?",
+    "confirmAction": "Confirm Action",
     "language": "Language"
   },
   "editor": {
@@ -68,5 +69,18 @@
   },
   "errors": {
     "decryptFailed": "Password decryption failed. The key may have changed. Please edit the host and re-enter the password."
+  },
+  "about": {
+    "description": "Multi-profile manager for Claude Code"
+  },
+  "tray": {
+    "openWindow": "Open Main Window",
+    "about": "About LLM Switch",
+    "quit": "Exit"
+  },
+  "tray": {
+    "openWindow": "Open Main Window",
+    "about": "About LLM Switch",
+    "quit": "Exit"
   }
 }

@@ -1,5 +1,7 @@
 # LLM Switch
 
+[中文文档](README_CN.md)
+
 A desktop application for managing multiple Claude Code configuration profiles, with remote sync support via SSH/SFTP.
 
 Built with **Tauri 2** + **React 19** + **Rust**.

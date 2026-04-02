@@ -151,11 +151,11 @@ export function SettingsEditor({ profile, onSaved }: Props) {
           />
         </div>
         <div className="form-group" style={{ flex: "1 1 150px", minWidth: 120 }}>
-          <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>Opus Model</label>
+          <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>Haiku Model</label>
           <input
-            value={quickSettings.opusModel}
-            onChange={(e) => updateJsonFromQuickSetting("opusModel", e.target.value)}
-            placeholder="claude-opus-4"
+            value={quickSettings.haikuModel}
+            onChange={(e) => updateJsonFromQuickSetting("haikuModel", e.target.value)}
+            placeholder="claude-haiku-3-5"
           />
         </div>
         <div className="form-group" style={{ flex: "1 1 150px", minWidth: 120 }}>
@@ -167,11 +167,11 @@ export function SettingsEditor({ profile, onSaved }: Props) {
           />
         </div>
         <div className="form-group" style={{ flex: "1 1 150px", minWidth: 120 }}>
-          <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>Haiku Model</label>
+          <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>Opus Model</label>
           <input
-            value={quickSettings.haikuModel}
-            onChange={(e) => updateJsonFromQuickSetting("haikuModel", e.target.value)}
-            placeholder="claude-haiku-3-5"
+            value={quickSettings.opusModel}
+            onChange={(e) => updateJsonFromQuickSetting("opusModel", e.target.value)}
+            placeholder="claude-opus-4"
           />
         </div>
       </div>

@@ -78,9 +78,16 @@
     "about": "关于 LLM Switch",
     "quit": "退出"
   },
-  "tray": {
-    "openWindow": "打开主窗口",
-    "about": "关于 LLM Switch",
-    "quit": "退出"
+  "updater": {
+    "checkUpdate": "检查更新",
+    "checking": "检查中...",
+    "newVersion": "发现新版本 {{version}}",
+    "upToDate": "已是最新版本",
+    "checkFailed": "检查更新失败",
+    "downloading": "下载中... {{percent}}%",
+    "downloadComplete": "下载完成，即将重启...",
+    "downloadAndRestart": "下载并重启",
+    "goToDownload": "前往下载",
+    "updateFailed": "更新失败，正在打开下载页面..."
   }
 }

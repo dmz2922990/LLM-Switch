@@ -78,9 +78,16 @@
     "about": "About LLM Switch",
     "quit": "Exit"
   },
-  "tray": {
-    "openWindow": "Open Main Window",
-    "about": "About LLM Switch",
-    "quit": "Exit"
+  "updater": {
+    "checkUpdate": "Check for Updates",
+    "checking": "Checking...",
+    "newVersion": "New version {{version}} available",
+    "upToDate": "You're up to date",
+    "checkFailed": "Update check failed",
+    "downloading": "Downloading... {{percent}}%",
+    "downloadComplete": "Download complete, restarting...",
+    "downloadAndRestart": "Download & Restart",
+    "goToDownload": "Go to Download",
+    "updateFailed": "Update failed, opening download page..."
   }
 }

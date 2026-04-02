@@ -11,9 +11,12 @@ mod tray;
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
+        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            let about_item = MenuItemBuilder::with_id("macos_about", "About LLM Switch").build(app)?;
+            let about_item =
+                MenuItemBuilder::with_id("macos_about", "About LLM Switch").build(app)?;
 
             let app_menu = SubmenuBuilder::new(app, "LLM Switch")
                 .item(&about_item)
@@ -58,8 +61,13 @@ pub fn run() {
 
             let handle = app.handle().clone();
             tauri::async_runtime::spawn(async move {
-                let data_dir = handle.path().app_data_dir().expect("Failed to get app data dir");
-                let pool = db::init_pool(&data_dir).await.expect("Failed to init database");
+                let data_dir = handle
+                    .path()
+                    .app_data_dir()
+                    .expect("Failed to get app data dir");
+                let pool = db::init_pool(&data_dir)
+                    .await
+                    .expect("Failed to init database");
                 handle.manage(pool.clone());
 
                 if let Err(e) = services::profile_service::ensure_default_profile(&pool).await {

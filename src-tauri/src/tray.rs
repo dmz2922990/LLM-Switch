@@ -1,11 +1,11 @@
+use crate::models::profile::Profile;
+use crate::services::profile_service;
 use sqlx::SqlitePool;
 use std::sync::Mutex;
 use tauri::menu::{Menu, MenuItem, PredefinedMenuItem};
 use tauri::tray::TrayIconBuilder;
 use tauri::Emitter;
 use tauri::Manager;
-use crate::models::profile::Profile;
-use crate::services::profile_service;
 
 pub struct TrayLabels {
     pub open_window: String,
@@ -23,7 +23,7 @@ impl TrayState {
     fn build_menu(
         app: &tauri::AppHandle,
         profiles: &[Profile],
-        labels: &TrayLabels
+        labels: &TrayLabels,
     ) -> tauri::Result<Menu<tauri::Wry>> {
         let mut items: Vec<Box<dyn tauri::menu::IsMenuItem<tauri::Wry>>> = vec![];
 
@@ -34,13 +34,20 @@ impl TrayState {
                 format!("  {}", p.name)
             };
             let id = format!("profile_{}", p.id);
-            items.push(Box::new(MenuItem::with_id(app, &id, &label, true, None::<&str>)?));
+            items.push(Box::new(MenuItem::with_id(
+                app,
+                &id,
+                &label,
+                true,
+                None::<&str>,
+            )?));
         }
 
         let sep = PredefinedMenuItem::separator(app)?;
         items.push(Box::new(sep));
 
-        let open_item = MenuItem::with_id(app, "open_window", &labels.open_window, true, None::<&str>)?;
+        let open_item =
+            MenuItem::with_id(app, "open_window", &labels.open_window, true, None::<&str>)?;
         items.push(Box::new(open_item));
 
         let about_item = MenuItem::with_id(app, "about", &labels.about, true, None::<&str>)?;
@@ -49,7 +56,8 @@ impl TrayState {
         let quit_item = MenuItem::with_id(app, "quit", &labels.quit, true, None::<&str>)?;
         items.push(Box::new(quit_item));
 
-        let item_refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> = items.iter().map(|i| i.as_ref()).collect();
+        let item_refs: Vec<&dyn tauri::menu::IsMenuItem<tauri::Wry>> =
+            items.iter().map(|i| i.as_ref()).collect();
         Menu::with_items(app, &item_refs)
     }
 
@@ -58,7 +66,9 @@ impl TrayState {
         pool: SqlitePool,
         labels: TrayLabels,
     ) -> tauri::Result<Self> {
-        let profiles = profile_service::list(&pool).await.unwrap_or_else(|_| vec![]);
+        let profiles = profile_service::list(&pool)
+            .await
+            .unwrap_or_else(|_| vec![]);
 
         let menu = Self::build_menu(app, &profiles, &labels)?;
         let tray = TrayIconBuilder::new()
@@ -108,7 +118,9 @@ impl TrayState {
     }
 
     pub async fn refresh_menu(&self, app: &tauri::AppHandle) {
-        let profiles = profile_service::list(&self.pool).await.unwrap_or_else(|_| vec![]);
+        let profiles = profile_service::list(&self.pool)
+            .await
+            .unwrap_or_else(|_| vec![]);
         let labels = self.labels.lock().unwrap();
 
         if let Ok(menu) = Self::build_menu(app, &profiles, &labels) {

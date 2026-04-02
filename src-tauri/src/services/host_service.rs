@@ -1,6 +1,6 @@
-use sqlx::SqlitePool;
-use crate::models::host::{Host, CreateHost, UpdateHost};
+use crate::models::host::{CreateHost, Host, UpdateHost};
 use crate::services::crypto;
+use sqlx::SqlitePool;
 
 pub async fn create(pool: &SqlitePool, input: CreateHost) -> Result<Host, String> {
     let id = uuid::Uuid::new_v4().to_string();
@@ -10,7 +10,9 @@ pub async fn create(pool: &SqlitePool, input: CreateHost) -> Result<Host, String
         ("password", Some(pwd)) => Some(crypto::encrypt(pwd)?),
         _ => None,
     };
-    let remote_path = input.remote_path.unwrap_or_else(|| "~/.claude/settings.json".to_string());
+    let remote_path = input
+        .remote_path
+        .unwrap_or_else(|| "~/.claude/settings.json".to_string());
     let now = chrono::Utc::now().to_rfc3339();
     sqlx::query_as::<_, Host>(
         "INSERT INTO hosts (id, name, address, port, username, auth_type, encrypted_password, key_path, remote_path, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) RETURNING *"
@@ -23,12 +25,16 @@ pub async fn create(pool: &SqlitePool, input: CreateHost) -> Result<Host, String
 
 pub async fn list(pool: &SqlitePool) -> Result<Vec<Host>, String> {
     sqlx::query_as::<_, Host>("SELECT * FROM hosts ORDER BY created_at ASC")
-        .fetch_all(pool).await.map_err(|e| format!("Failed to list hosts: {}", e))
+        .fetch_all(pool)
+        .await
+        .map_err(|e| format!("Failed to list hosts: {}", e))
 }
 
 pub async fn get_by_id(pool: &SqlitePool, id: &str) -> Result<Host, String> {
     sqlx::query_as::<_, Host>("SELECT * FROM hosts WHERE id = ?")
-        .bind(id).fetch_optional(pool).await
+        .bind(id)
+        .fetch_optional(pool)
+        .await
         .map_err(|e| format!("Database error: {}", e))?
         .ok_or_else(|| "Host not found".to_string())
 }
@@ -36,15 +42,27 @@ pub async fn get_by_id(pool: &SqlitePool, id: &str) -> Result<Host, String> {
 pub async fn update(pool: &SqlitePool, input: UpdateHost) -> Result<Host, String> {
     let mut host = get_by_id(pool, &input.id).await?;
     let now = chrono::Utc::now().to_rfc3339();
-    if let Some(name) = &input.name { host.name = name.clone(); }
-    if let Some(address) = &input.address { host.address = address.clone(); }
-    if let Some(port) = input.port { host.port = port; }
-    if let Some(username) = &input.username { host.username = username.clone(); }
+    if let Some(name) = &input.name {
+        host.name = name.clone();
+    }
+    if let Some(address) = &input.address {
+        host.address = address.clone();
+    }
+    if let Some(port) = input.port {
+        host.port = port;
+    }
+    if let Some(username) = &input.username {
+        host.username = username.clone();
+    }
     if let Some(password) = &input.password {
         host.encrypted_password = Some(crypto::encrypt(password)?);
     }
-    if let Some(key_path) = &input.key_path { host.key_path = Some(key_path.clone()); }
-    if let Some(remote_path) = &input.remote_path { host.remote_path = remote_path.clone(); }
+    if let Some(key_path) = &input.key_path {
+        host.key_path = Some(key_path.clone());
+    }
+    if let Some(remote_path) = &input.remote_path {
+        host.remote_path = remote_path.clone();
+    }
     sqlx::query_as::<_, Host>(
         "UPDATE hosts SET name=?, address=?, port=?, username=?, encrypted_password=?, key_path=?, remote_path=?, updated_at=? WHERE id=? RETURNING *"
     )
@@ -55,9 +73,15 @@ pub async fn update(pool: &SqlitePool, input: UpdateHost) -> Result<Host, String
 }
 
 pub async fn delete(pool: &SqlitePool, id: &str) -> Result<(), String> {
-    sqlx::query("DELETE FROM sync_history WHERE host_id = ?").bind(id).execute(pool).await
+    sqlx::query("DELETE FROM sync_history WHERE host_id = ?")
+        .bind(id)
+        .execute(pool)
+        .await
         .map_err(|e| format!("Failed to delete sync history: {}", e))?;
-    sqlx::query("DELETE FROM hosts WHERE id = ?").bind(id).execute(pool).await
+    sqlx::query("DELETE FROM hosts WHERE id = ?")
+        .bind(id)
+        .execute(pool)
+        .await
         .map_err(|e| format!("Failed to delete host: {}", e))?;
     Ok(())
 }

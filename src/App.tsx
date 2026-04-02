@@ -27,6 +27,7 @@ function App() {
       if (!selectedProfileId && p.length > 0) {
         setSelectedProfileId(p.find((pr) => pr.is_active)?.id ?? p[0].id);
       }
+      invoke("refresh_tray_menu").catch(() => {});
     } catch (e) {
       console.error("Failed to load data:", e);
     } finally {

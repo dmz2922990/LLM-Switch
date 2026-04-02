@@ -100,6 +100,7 @@ pub fn run() {
             commands::sync_to_hosts,
             commands::list_sync_history,
             commands::open_github,
+            commands::refresh_tray_menu,
             commands::update_tray_labels,
         ])
         .run(tauri::generate_context!())

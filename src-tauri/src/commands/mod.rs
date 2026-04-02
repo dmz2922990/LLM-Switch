@@ -117,6 +117,15 @@ pub async fn open_github(app: tauri::AppHandle) -> Result<(), String> {
 }
 
 #[tauri::command]
+pub async fn refresh_tray_menu(
+    app: tauri::AppHandle,
+    tray_state: tauri::State<'_, crate::tray::TrayState>,
+) -> Result<(), String> {
+    tray_state.refresh_menu(&app).await;
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn update_tray_labels(
     app: tauri::AppHandle,
     tray_state: tauri::State<'_, crate::tray::TrayState>,

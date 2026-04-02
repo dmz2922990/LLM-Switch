@@ -107,8 +107,7 @@ impl TrayState {
         })
     }
 
-    pub async fn update_labels(&self, app: &tauri::AppHandle, new_labels: TrayLabels) {
-        *self.labels.lock().unwrap() = new_labels;
+    pub async fn refresh_menu(&self, app: &tauri::AppHandle) {
         let profiles = profile_service::list(&self.pool).await.unwrap_or_else(|_| vec![]);
         let labels = self.labels.lock().unwrap();
 
@@ -117,5 +116,10 @@ impl TrayState {
                 let _ = tray.set_menu(Some(menu));
             }
         }
+    }
+
+    pub async fn update_labels(&self, app: &tauri::AppHandle, new_labels: TrayLabels) {
+        *self.labels.lock().unwrap() = new_labels;
+        self.refresh_menu(app).await;
     }
 }

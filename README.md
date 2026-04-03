@@ -28,6 +28,18 @@ Built with **Tauri 2** + **React 19** + **Rust**.
 | Encryption | aes-gcm (AES-256-GCM) |
 | Editor | Monaco Editor |
 
+## Installation
+
+Download the latest release from [GitHub Releases](https://github.com/dmz2922990/LLM-Switch/releases).
+
+### macOS Notice
+
+Since the app is not signed with an Apple Developer certificate, macOS Gatekeeper may block it. Run the following command after installing:
+
+```bash
+xattr -cr /Applications/LLM\ Switch.app
+```
+
 ## Getting Started
 
 ### Prerequisites

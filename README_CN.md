@@ -28,6 +28,18 @@
 | 加密 | aes-gcm (AES-256-GCM) |
 | 编辑器 | Monaco Editor |
 
+## 安装
+
+从 [GitHub Releases](https://github.com/dmz2922990/LLM-Switch/releases) 下载最新版本。
+
+### macOS 注意事项
+
+由于应用未经过 Apple Developer 签名，macOS 可能会阻止运行。安装后请执行以下命令：
+
+```bash
+xattr -cr /Applications/LLM\ Switch.app
+```
+
 ## 快速开始
 
 ### 环境要求

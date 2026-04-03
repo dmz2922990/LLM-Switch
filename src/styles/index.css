@@ -201,10 +201,11 @@ input:focus, select:focus {
 }
 
 .main-header {
-  padding: 16px 24px;
+  padding: 4px 24px;
   display: flex;
   align-items: center;
   justify-content: flex-end;
+  gap: 8px;
 }
 
 .main-header h1 {

@@ -1,3 +1,4 @@
+import logoUrl from "./img/transparent-logo.png";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
@@ -138,6 +139,7 @@ function App() {
       <div className="main-content">
         <div className="main-header">
           <h1>LLM Switch</h1>
+          <img src={logoUrl} alt="" style={{ width: 44, height: 44 }} />
         </div>
         <div className="tabs">
           <button className={`tab ${activeTab === "editor" ? "active" : ""}`} onClick={() => setActiveTab("editor")}>
@@ -174,7 +176,7 @@ function App() {
         <div className="dialog-overlay" onClick={() => { setShowAbout(false); setUpdateStatus({ state: "idle" }); }}>
           <div className="dialog" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center", minWidth: 340 }}>
             <h3 style={{ marginBottom: 8, fontSize: 20 }}>LLM Switch</h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 12 }}>v1.0.3</p>
+            <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 12 }}>v1.0.4</p>
             <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
               {t("about.description")}
             </p>

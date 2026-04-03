@@ -12,6 +12,7 @@ pub struct Host {
     pub encrypted_password: Option<String>,
     pub key_path: Option<String>,
     pub remote_path: String,
+    pub is_default: bool,
     pub created_at: String,
     pub updated_at: String,
 }

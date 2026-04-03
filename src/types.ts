@@ -17,6 +17,7 @@ export interface Host {
   encrypted_password: string | null;
   key_path: string | null;
   remote_path: string;
+  is_default: boolean;
   created_at: string;
   updated_at: string;
 }
@@ -28,6 +29,8 @@ export interface SyncHistory {
   synced_at: string;
   status: string;
   error_message: string | null;
+  source_hash: string | null;
+  target_hash: string | null;
 }
 
 export interface SyncResult {

@@ -46,7 +46,10 @@
     "syncButton": "Sync",
     "syncHistory": "Sync History",
     "syncResult": "Sync Result",
-    "noRecords": "No sync records"
+    "noRecords": "No sync records",
+    "defaultHost": "Default",
+    "setDefault": "Set Default",
+    "hashNA": "N/A"
   },
   "host": {
     "title": "Remote Hosts",

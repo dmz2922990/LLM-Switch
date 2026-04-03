@@ -100,6 +100,14 @@ pub async fn delete_host(pool: tauri::State<'_, SqlitePool>, id: String) -> Resu
 }
 
 #[tauri::command]
+pub async fn set_default_host(
+    pool: tauri::State<'_, SqlitePool>,
+    host_id: String,
+) -> Result<Host, String> {
+    host_service::set_default(&pool, &host_id).await
+}
+
+#[tauri::command]
 pub async fn test_host_connection(
     address: String,
     port: i32,

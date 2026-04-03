@@ -32,6 +32,8 @@ export const api = {
       invoke<void>("test_host_connection", { address, port, username, password, keyPath }),
     testSaved: (hostId: string) =>
       invoke<void>("test_saved_host", { hostId }),
+    setDefault: (hostId: string) =>
+      invoke<Host>("set_default_host", { hostId }),
   },
   sync: {
     toHost: (profileId: string, hostId: string) =>

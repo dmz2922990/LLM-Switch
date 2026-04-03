@@ -46,7 +46,10 @@
     "syncButton": "同步",
     "syncHistory": "同步历史",
     "syncResult": "同步结果",
-    "noRecords": "暂无同步记录"
+    "noRecords": "暂无同步记录",
+    "defaultHost": "默认",
+    "setDefault": "设为默认",
+    "hashNA": "N/A"
   },
   "host": {
     "title": "远程主机",

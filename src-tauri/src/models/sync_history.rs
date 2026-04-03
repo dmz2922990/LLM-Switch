@@ -9,6 +9,8 @@ pub struct SyncHistory {
     pub synced_at: String,
     pub status: String,
     pub error_message: Option<String>,
+    pub source_hash: Option<String>,
+    pub target_hash: Option<String>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

@@ -1,10 +1,21 @@
 use crate::models::sync_history::SyncResult;
 use crate::services::{host_service, profile_service, sync_history_service};
+use sha2::{Digest, Sha256};
 use sqlx::SqlitePool;
 use ssh2::Session;
 use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::path::Path;
+
+struct UploadResult {
+    source_hash: Option<String>,
+    target_hash: String,
+}
+
+fn compute_short_hash(data: &[u8]) -> String {
+    let hash = Sha256::digest(data);
+    hash[..6].iter().map(|b| format!("{:02x}", b)).collect()
+}
 
 pub async fn sync_to_host(pool: &SqlitePool, profile_id: &str, host_id: &str) -> SyncResult {
     let profile = match profile_service::get_by_id(pool, profile_id).await {
@@ -49,8 +60,17 @@ pub async fn sync_to_host(pool: &SqlitePool, profile_id: &str, host_id: &str) ->
         &host.remote_path,
         &profile.settings_json,
     ) {
-        Ok(()) => {
-            let _ = sync_history_service::record(pool, profile_id, host_id, "success", None).await;
+        Ok(upload) => {
+            let _ = sync_history_service::record(
+                pool,
+                profile_id,
+                host_id,
+                "success",
+                None,
+                upload.source_hash.as_deref(),
+                Some(&upload.target_hash),
+            )
+            .await;
             SyncResult {
                 profile_id: profile_id.to_string(),
                 host_id: host_id.to_string(),
@@ -60,9 +80,16 @@ pub async fn sync_to_host(pool: &SqlitePool, profile_id: &str, host_id: &str) ->
         }
         Err(e) => {
             let err_msg = e.clone();
-            let _ =
-                sync_history_service::record(pool, profile_id, host_id, "failed", Some(&err_msg))
-                    .await;
+            let _ = sync_history_service::record(
+                pool,
+                profile_id,
+                host_id,
+                "failed",
+                Some(&err_msg),
+                None,
+                None,
+            )
+            .await;
             SyncResult {
                 profile_id: profile_id.to_string(),
                 host_id: host_id.to_string(),
@@ -94,7 +121,7 @@ fn do_scp_upload(
     key_path: Option<&str>,
     remote_path: &str,
     content: &str,
-) -> Result<(), String> {
+) -> Result<UploadResult, String> {
     let addr = format!("{}:{}", address, port);
     let tcp =
         TcpStream::connect(&addr).map_err(|e| format!("Connection failed ({}): {}", addr, e))?;
@@ -105,9 +132,18 @@ fn do_scp_upload(
         .map_err(|e| format!("SSH handshake failed: {}", e))?;
     authenticate(&mut session, username, password, key_path)?;
     let remote = expand_remote_path(&session, remote_path)?;
+
+    let source_hash = read_remote_file(&session, &remote)
+        .ok()
+        .map(|data| compute_short_hash(&data));
+    let target_hash = compute_short_hash(content.as_bytes());
+
     upload_content(&session, &remote, content)?;
     session.disconnect(None, "Done", None).ok();
-    Ok(())
+    Ok(UploadResult {
+        source_hash,
+        target_hash,
+    })
 }
 
 fn authenticate(
@@ -144,6 +180,18 @@ fn expand_remote_path(session: &Session, path: &str) -> Result<String, String> {
     } else {
         Ok(path.to_string())
     }
+}
+
+fn read_remote_file(session: &Session, remote_path: &str) -> Result<Vec<u8>, String> {
+    let sftp = session
+        .sftp()
+        .map_err(|e| format!("SFTP init failed: {}", e))?;
+    let path = Path::new(remote_path);
+    let mut file = sftp.open(path).map_err(|_| "File not found".to_string())?;
+    let mut data = Vec::new();
+    file.read_to_end(&mut data)
+        .map_err(|e| format!("Failed to read remote file: {}", e))?;
+    Ok(data)
 }
 
 fn upload_content(session: &Session, remote_path: &str, content: &str) -> Result<(), String> {

@@ -163,7 +163,7 @@ function App() {
             )
           )}
           {activeTab === "sync" && (
-            <SyncPanel profiles={profiles} hosts={hosts} />
+            <SyncPanel profiles={profiles} hosts={hosts} onRefresh={refresh} />
           )}
           {activeTab === "hosts" && (
             <HostManager hosts={hosts} onRefresh={refresh} />

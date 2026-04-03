@@ -23,5 +23,12 @@ pub async fn init_pool(app_data_dir: &Path) -> Result<SqlitePool, sqlx::Error> {
 async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     let migration_sql = include_str!("../../migrations/001_init.sql");
     sqlx::raw_sql(migration_sql).execute(pool).await?;
+    // Migration 002: ignore "duplicate column" errors for idempotency
+    let m2 = include_str!("../../migrations/002_add_default_host_and_sync_hashes.sql");
+    if let Err(e) = sqlx::raw_sql(m2).execute(pool).await {
+        if !e.to_string().contains("duplicate column name") {
+            return Err(e);
+        }
+    }
     Ok(())
 }

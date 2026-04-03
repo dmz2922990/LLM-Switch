@@ -359,3 +359,33 @@ input:focus, select:focus {
   overflow-y: auto;
   flex: 1;
 }
+
+.sync-history-item {
+  font-size: 12px;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--border);
+  font-family: "SF Mono", "Menlo", "Monaco", "Consolas", monospace;
+  line-height: 1.5;
+}
+
+.default-badge {
+  font-size: 10px;
+  padding: 1px 6px;
+  border-radius: 3px;
+  background: var(--warning);
+  color: var(--bg-primary);
+  font-weight: 600;
+  margin-left: 4px;
+}
+
+.set-default-btn {
+  font-size: 11px;
+  padding: 1px 6px;
+  background: transparent;
+  color: var(--text-muted);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.set-default-btn:hover { color: var(--accent); border-color: var(--accent); }

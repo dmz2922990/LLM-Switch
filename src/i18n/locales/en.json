@@ -49,7 +49,9 @@
     "noRecords": "No sync records",
     "defaultHost": "Default",
     "setDefault": "Set Default",
-    "hashNA": "N/A"
+    "hashNA": "N/A",
+    "prevPage": "Prev",
+    "nextPage": "Next"
   },
   "host": {
     "title": "Remote Hosts",

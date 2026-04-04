@@ -28,6 +28,8 @@ export function SyncPanel({ profiles, hosts, onRefresh }: Props) {
   const [syncing, setSyncing] = useState(false);
   const [results, setResults] = useState<SyncResult[]>([]);
   const [history, setHistory] = useState<SyncHistory[]>([]);
+  const [historyPage, setHistoryPage] = useState(1);
+  const historyPageSize = 4;
 
   useEffect(() => {
     if (!selectedProfile) {
@@ -66,6 +68,7 @@ export function SyncPanel({ profiles, hosts, onRefresh }: Props) {
         Array.from(selectedHosts),
       );
       setResults(res);
+      setHistoryPage(1);
       await loadHistory();
     } catch (e: any) {
       alert(e.toString());
@@ -234,36 +237,61 @@ export function SyncPanel({ profiles, hosts, onRefresh }: Props) {
               {t("sync.noRecords")}
             </p>
           ) : (
-            history.map((h) => {
-              const hostName =
-                hosts.find((x) => x.id === h.host_id)?.name ?? "Unknown";
-              const profileName =
-                profiles.find((p) => p.id === h.profile_id)?.name ?? "Unknown";
-              const src = h.source_hash ?? t("sync.hashNA");
-              const tgt = h.target_hash ?? t("sync.hashNA");
-              return (
-                <div key={h.id} className="sync-history-item">
-                  <span
-                    style={{
-                      color:
-                        h.status === "success"
-                          ? "var(--success)"
-                          : "var(--danger)",
-                    }}
+            <>
+              {history
+                .slice((historyPage - 1) * historyPageSize, historyPage * historyPageSize)
+                .map((h) => {
+                  const hostName =
+                    hosts.find((x) => x.id === h.host_id)?.name ?? "Unknown";
+                  const profileName =
+                    profiles.find((p) => p.id === h.profile_id)?.name ?? "Unknown";
+                  const src = h.source_hash ?? t("sync.hashNA");
+                  const tgt = h.target_hash ?? t("sync.hashNA");
+                  return (
+                    <div key={h.id} className="sync-history-item">
+                      <span
+                        style={{
+                          color:
+                            h.status === "success"
+                              ? "var(--success)"
+                              : "var(--danger)",
+                        }}
+                      >
+                        {h.status === "success" ? "✓" : "✕"}
+                      </span>{" "}
+                      {formatSyncDate(h.synced_at)} - {hostName} - {profileName} -{" "}
+                      {src} → {tgt}
+                      {h.error_message && (
+                        <span style={{ color: "var(--danger)" }}>
+                          {" "}
+                          ({h.error_message})
+                        </span>
+                      )}
+                    </div>
+                  );
+                })}
+              {history.length > historyPageSize && (
+                <div className="pagination">
+                  <button
+                    className="btn-secondary btn-sm"
+                    disabled={historyPage <= 1}
+                    onClick={() => setHistoryPage((p) => p - 1)}
                   >
-                    {h.status === "success" ? "✓" : "✕"}
-                  </span>{" "}
-                  {formatSyncDate(h.synced_at)} - {hostName} - {profileName} -{" "}
-                  {src} → {tgt}
-                  {h.error_message && (
-                    <span style={{ color: "var(--danger)" }}>
-                      {" "}
-                      ({h.error_message})
-                    </span>
-                  )}
+                    {t("sync.prevPage")}
+                  </button>
+                  <span className="pagination-info">
+                    {historyPage} / {Math.ceil(history.length / historyPageSize)}
+                  </span>
+                  <button
+                    className="btn-secondary btn-sm"
+                    disabled={historyPage * historyPageSize >= history.length}
+                    onClick={() => setHistoryPage((p) => p + 1)}
+                  >
+                    {t("sync.nextPage")}
+                  </button>
                 </div>
-              );
-            })
+              )}
+            </>
           )}
         </div>
       </div>

@@ -12,12 +12,32 @@ pub async fn record(
 ) -> Result<SyncHistory, String> {
     let id = uuid::Uuid::new_v4().to_string();
     let now = chrono::Utc::now().to_rfc3339();
-    sqlx::query_as::<_, SyncHistory>(
+    let record = sqlx::query_as::<_, SyncHistory>(
         "INSERT INTO sync_history (id, profile_id, host_id, synced_at, status, error_message, source_hash, target_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?) RETURNING *"
     )
     .bind(&id).bind(profile_id).bind(host_id).bind(&now).bind(status).bind(error_message)
     .bind(source_hash).bind(target_hash)
-    .fetch_one(pool).await.map_err(|e| format!("Failed to record sync history: {}", e))
+    .fetch_one(pool).await.map_err(|e| format!("Failed to record sync history: {}", e))?;
+    trim_history(pool, 20).await.ok();
+    Ok(record)
+}
+
+async fn trim_history(pool: &SqlitePool, max_records: usize) -> Result<(), String> {
+    let count: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM sync_history")
+        .fetch_one(pool)
+        .await
+        .map_err(|e| format!("Failed to count history: {}", e))?;
+    if count as usize > max_records {
+        let excess = (count as i64) - (max_records as i64);
+        sqlx::query(
+            "DELETE FROM sync_history WHERE id IN (SELECT id FROM sync_history ORDER BY synced_at ASC LIMIT ?)",
+        )
+        .bind(excess)
+        .execute(pool)
+        .await
+        .map_err(|e| format!("Failed to trim history: {}", e))?;
+    }
+    Ok(())
 }
 
 pub async fn list_by_profile(

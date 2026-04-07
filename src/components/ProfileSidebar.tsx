@@ -160,7 +160,7 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
               {p.is_active ? (
                 <button className="badge-btn" disabled>{t("sidebar.active")}</button>
               ) : (
-                <button className="btn-primary btn-sm" onClick={(e) => { e.stopPropagation(); handleSwitch(p.id); }}>{t("sidebar.switch")}</button>
+                <button className="btn-secondary btn-sm switch-btn" onClick={(e) => { e.stopPropagation(); handleSwitch(p.id); }}>{t("sidebar.switch")}</button>
               )}
               <button className="btn-secondary btn-sm" onClick={(e) => startRename(p, e)} title={t("common.rename")}>✎</button>
               <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setCopyingId(p.id); }} title={t("common.copy")}>⧉</button>

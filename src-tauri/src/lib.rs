@@ -79,12 +79,26 @@ pub fn run() {
                     about: "About LLM Switch".to_string(),
                     quit: "Exit".to_string(),
                 };
-                match tray::TrayState::init_tray(&handle, pool, labels).await {
+                match tray::TrayState::init_tray(&handle, pool.clone(), labels).await {
                     Ok(tray_state) => {
                         handle.manage(tray_state);
                     }
                     Err(e) => eprintln!("Failed to init tray: {}", e),
                 }
+
+                // Periodically sync active profile from ~/.claude/settings.json
+                let poll_handle = handle.clone();
+                tauri::async_runtime::spawn(async move {
+                    let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
+                    loop {
+                        interval.tick().await;
+                        if let Some(p) = poll_handle.try_state::<sqlx::SqlitePool>() {
+                            if services::profile_service::sync_active_from_file(&p).await {
+                                let _ = poll_handle.emit("settings-file-changed", ());
+                            }
+                        }
+                    }
+                });
             });
             Ok(())
         })

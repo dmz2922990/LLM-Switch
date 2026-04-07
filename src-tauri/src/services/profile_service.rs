@@ -13,10 +13,33 @@ pub async fn create(pool: &SqlitePool, input: CreateProfile) -> Result<Profile, 
 }
 
 pub async fn list(pool: &SqlitePool) -> Result<Vec<Profile>, String> {
+    let _ = sync_active_from_file(pool).await;
     sqlx::query_as::<_, Profile>("SELECT * FROM profiles ORDER BY created_at ASC")
         .fetch_all(pool)
         .await
         .map_err(|e| format!("Failed to list profiles: {}", e))
+}
+
+pub async fn sync_active_from_file(pool: &SqlitePool) -> bool {
+    let active = match get_active(pool).await {
+        Ok(Some(p)) => p,
+        _ => return false,
+    };
+    let file_content = match read_current_settings_json() {
+        Some(c) => c,
+        None => return false,
+    };
+    if file_content == active.settings_json {
+        return false;
+    }
+    let now = chrono::Utc::now().to_rfc3339();
+    sqlx::query("UPDATE profiles SET settings_json = ?, updated_at = ? WHERE id = ?")
+        .bind(&file_content)
+        .bind(&now)
+        .bind(&active.id)
+        .execute(pool)
+        .await
+        .is_ok()
 }
 
 pub async fn get_by_id(pool: &SqlitePool, id: &str) -> Result<Profile, String> {

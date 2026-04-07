@@ -67,9 +67,11 @@ function App() {
   useEffect(() => {
     const unlistenAbout = listen("show-about", () => setShowAbout(true));
     const unlistenSwitched = listen("profile-switched", () => refresh());
+    const unlistenFileChanged = listen("settings-file-changed", () => refresh());
     return () => {
       unlistenAbout.then((fn) => fn());
       unlistenSwitched.then((fn) => fn());
+      unlistenFileChanged.then((fn) => fn());
     };
   }, [refresh]);
 

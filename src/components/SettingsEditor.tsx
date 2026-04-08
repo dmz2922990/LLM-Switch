@@ -12,6 +12,7 @@ interface Props {
 interface QuickSettings {
   baseUrl: string;
   authToken: string;
+  model: string;
   opusModel: string;
   sonnetModel: string;
   haikuModel: string;
@@ -25,6 +26,7 @@ export function SettingsEditor({ profile, onSaved }: Props) {
   const [quickSettings, setQuickSettings] = useState<QuickSettings>({
     baseUrl: "",
     authToken: "",
+    model: "",
     opusModel: "",
     sonnetModel: "",
     haikuModel: "",
@@ -38,6 +40,7 @@ export function SettingsEditor({ profile, onSaved }: Props) {
       setQuickSettings({
         baseUrl: env.ANTHROPIC_BASE_URL || "",
         authToken: env.ANTHROPIC_AUTH_TOKEN || "",
+        model: env.ANTHROPIC_MODEL || "",
         opusModel: env.ANTHROPIC_DEFAULT_OPUS_MODEL || "",
         sonnetModel: env.ANTHROPIC_DEFAULT_SONNET_MODEL || "",
         haikuModel: env.ANTHROPIC_DEFAULT_HAIKU_MODEL || "",
@@ -63,11 +66,17 @@ export function SettingsEditor({ profile, onSaved }: Props) {
       const envKey = {
         baseUrl: "ANTHROPIC_BASE_URL",
         authToken: "ANTHROPIC_AUTH_TOKEN",
+        model: "ANTHROPIC_MODEL",
         opusModel: "ANTHROPIC_DEFAULT_OPUS_MODEL",
         sonnetModel: "ANTHROPIC_DEFAULT_SONNET_MODEL",
         haikuModel: "ANTHROPIC_DEFAULT_HAIKU_MODEL",
       }[key];
-      parsed.env[envKey] = value;
+      const isModelField = ["model", "opusModel", "sonnetModel", "haikuModel"].includes(key);
+      if (isModelField && value.trim() === "") {
+        delete parsed.env[envKey];
+      } else {
+        parsed.env[envKey] = value;
+      }
       const newContent = JSON.stringify(parsed, null, 2);
       setContent(newContent);
       setQuickSettings((prev) => ({ ...prev, [key]: value }));
@@ -148,6 +157,14 @@ export function SettingsEditor({ profile, onSaved }: Props) {
             value={quickSettings.authToken}
             onChange={(e) => updateJsonFromQuickSetting("authToken", e.target.value)}
             placeholder="sk-ant-..."
+          />
+        </div>
+        <div className="form-group" style={{ flex: "1 1 150px", minWidth: 120 }}>
+          <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>Model</label>
+          <input
+            value={quickSettings.model}
+            onChange={(e) => updateJsonFromQuickSetting("model", e.target.value)}
+            placeholder="claude-sonnet-4-20250514"
           />
         </div>
         <div className="form-group" style={{ flex: "1 1 150px", minWidth: 120 }}>

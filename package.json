@@ -1,6 +1,6 @@
 {
   "name": "llm-switch",
-  "version": "1.0.7",
+  "version": "1.0.8",
   "private": true,
   "type": "module",
   "scripts": {
@@ -9,7 +9,8 @@
     "preview": "vite preview",
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build"
+    "tauri:build": "tauri build",
+    "bump": "node scripts/bump-version.mjs"
   },
   "dependencies": {
     "@monaco-editor/react": "^4.7.0",

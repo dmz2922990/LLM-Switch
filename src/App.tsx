@@ -2,6 +2,7 @@ import logoUrl from "./img/transparent-logo.png";
 import { useState, useEffect, useCallback } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
+import { getVersion } from "@tauri-apps/api/app";
 import { listen } from "@tauri-apps/api/event";
 import { check } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
@@ -31,6 +32,7 @@ function App() {
   const [loading, setLoading] = useState(true);
   const [showAbout, setShowAbout] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ state: "idle" });
+  const [appVersion, setAppVersion] = useState("");
 
   const refresh = useCallback(async () => {
     try {
@@ -50,6 +52,7 @@ function App() {
 
   useEffect(() => {
     refresh();
+    getVersion().then(setAppVersion);
   }, [refresh]);
 
   const syncTrayLabels = useCallback(() => {
@@ -178,7 +181,7 @@ function App() {
         <div className="dialog-overlay" onClick={() => { setShowAbout(false); setUpdateStatus({ state: "idle" }); }}>
           <div className="dialog" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center", minWidth: 340 }}>
             <h3 style={{ marginBottom: 8, fontSize: 20 }}>LLM Switch</h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 12 }}>v1.0.4</p>
+            <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 12 }}>{appVersion ? `v${appVersion}` : ""}</p>
             <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
               {t("about.description")}
             </p>

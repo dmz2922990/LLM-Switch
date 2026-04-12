@@ -104,6 +104,18 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
     }
   };
 
+  const moveProfile = async (index: number, direction: -1 | 1) => {
+    if (index + direction < 0 || index + direction >= profiles.length) return;
+    const reordered = [...profiles];
+    [reordered[index], reordered[index + direction]] = [reordered[index + direction], reordered[index]];
+    try {
+      await api.profile.reorder(reordered.map((p) => p.id));
+      onRefresh();
+    } catch (err: any) {
+      alert(err.toString());
+    }
+  };
+
   return (
     <div className="sidebar">
       <div className="sidebar-header">
@@ -135,7 +147,7 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
             <button className="btn-primary btn-sm" onClick={() => setShowNew(true)}>{t("sidebar.createFirst")}</button>
           </div>
         )}
-        {profiles.map((p) => (
+        {profiles.map((p, idx) => (
           <div
             key={p.id}
             className={`profile-item ${selectedId === p.id ? "active" : ""}`}
@@ -165,6 +177,10 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
               <button className="btn-secondary btn-sm" onClick={(e) => startRename(p, e)} title={t("common.rename")}>✎</button>
               <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setCopyingId(p.id); }} title={t("common.copy")}>⧉</button>
               <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setDeletingId(p.id); }} title={t("common.delete")}>✕</button>
+            </div>
+            <div className="profile-sort-arrows">
+              <button className="sort-arrow" disabled={idx === 0} onClick={(e) => { e.stopPropagation(); moveProfile(idx, -1); }}>▲</button>
+              <button className="sort-arrow" disabled={idx === profiles.length - 1} onClick={(e) => { e.stopPropagation(); moveProfile(idx, 1); }}>▼</button>
             </div>
           </div>
         ))}

@@ -7,6 +7,7 @@ pub struct Profile {
     pub name: String,
     pub settings_json: String,
     pub is_active: bool,
+    pub sort_order: i64,
     pub created_at: String,
     pub updated_at: String,
 }

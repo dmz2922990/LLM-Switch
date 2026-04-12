@@ -3,6 +3,7 @@ export interface Profile {
   name: string;
   settings_json: string;
   is_active: boolean;
+  sort_order: number;
   created_at: string;
   updated_at: string;
 }

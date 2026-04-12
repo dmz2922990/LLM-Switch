@@ -74,6 +74,14 @@ pub async fn update_profile_settings(
 }
 
 #[tauri::command]
+pub async fn reorder_profiles(
+    pool: tauri::State<'_, SqlitePool>,
+    ordered_ids: Vec<String>,
+) -> Result<(), String> {
+    profile_service::reorder(&pool, &ordered_ids).await
+}
+
+#[tauri::command]
 pub async fn create_host(
     pool: tauri::State<'_, SqlitePool>,
     input: CreateHost,

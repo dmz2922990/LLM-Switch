@@ -154,6 +154,7 @@ input:focus, select:focus {
 }
 
 .profile-item {
+  position: relative;
   display: flex;
   flex-direction: column;
   padding: 10px 12px;
@@ -177,6 +178,32 @@ input:focus, select:focus {
 
 .profile-item:hover { background: var(--bg-hover); }
 .profile-item.active { background: var(--bg-surface); border-left: 3px solid var(--accent); }
+
+.profile-sort-arrows {
+  position: absolute;
+  right: 4px;
+  top: 2px;
+  bottom: 2px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.profile-item:hover .profile-sort-arrows { opacity: 1; }
+
+.sort-arrow {
+  background: none;
+  padding: 2px 4px;
+  font-size: 10px;
+  color: var(--text-muted);
+  border-radius: 2px;
+  line-height: 1;
+}
+
+.sort-arrow:hover:not(:disabled) { color: var(--text-primary); }
+.sort-arrow:disabled { opacity: 0; }
 
 .profile-item .name {
   font-size: 13px;

@@ -5,16 +5,22 @@ pub async fn create(pool: &SqlitePool, input: CreateProfile) -> Result<Profile, 
     let id = uuid::Uuid::new_v4().to_string();
     let settings = input.settings_json.unwrap_or_else(|| "{}".to_string());
     let now = chrono::Utc::now().to_rfc3339();
+    let max_order: Option<(i64,)> =
+        sqlx::query_as("SELECT COALESCE(MAX(sort_order), -1) FROM profiles")
+            .fetch_optional(pool)
+            .await
+            .map_err(|e| format!("Failed to get max sort_order: {}", e))?;
+    let sort_order = max_order.map(|(v,)| v + 1).unwrap_or(0);
     sqlx::query_as::<_, Profile>(
-        "INSERT INTO profiles (id, name, settings_json, is_active, created_at, updated_at) VALUES (?, ?, ?, 0, ?, ?) RETURNING *"
+        "INSERT INTO profiles (id, name, settings_json, is_active, sort_order, created_at, updated_at) VALUES (?, ?, ?, 0, ?, ?, ?) RETURNING *"
     )
-    .bind(&id).bind(&input.name).bind(&settings).bind(&now).bind(&now)
+    .bind(&id).bind(&input.name).bind(&settings).bind(sort_order).bind(&now).bind(&now)
     .fetch_one(pool).await.map_err(|e| format!("Failed to create profile: {}", e))
 }
 
 pub async fn list(pool: &SqlitePool) -> Result<Vec<Profile>, String> {
     let _ = sync_active_from_file(pool).await;
-    sqlx::query_as::<_, Profile>("SELECT * FROM profiles ORDER BY created_at ASC")
+    sqlx::query_as::<_, Profile>("SELECT * FROM profiles ORDER BY sort_order ASC, created_at ASC")
         .fetch_all(pool)
         .await
         .map_err(|e| format!("Failed to list profiles: {}", e))
@@ -204,5 +210,19 @@ async fn rollback_active(pool: &SqlitePool, _previous_json: &Option<String>) -> 
         .execute(pool)
         .await
         .map_err(|e| format!("Rollback failed: {}", e))?;
+    Ok(())
+}
+
+pub async fn reorder(pool: &SqlitePool, ordered_ids: &[String]) -> Result<(), String> {
+    let mut tx = pool.begin().await.map_err(|e| format!("Failed to begin transaction: {}", e))?;
+    for (index, id) in ordered_ids.iter().enumerate() {
+        sqlx::query("UPDATE profiles SET sort_order = ? WHERE id = ?")
+            .bind(index as i64)
+            .bind(id)
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| format!("Failed to update sort_order: {}", e))?;
+    }
+    tx.commit().await.map_err(|e| format!("Failed to commit reorder: {}", e))?;
     Ok(())
 }

@@ -31,20 +31,25 @@ async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         }
     }
     // Migration 003: add sort_order for manual profile ordering
-    if let Err(e) = sqlx::raw_sql(
+    let alter_result = sqlx::raw_sql(
         "ALTER TABLE profiles ADD COLUMN sort_order INTEGER NOT NULL DEFAULT 0",
     )
     .execute(pool)
-    .await
-    {
+    .await;
+
+    let is_new_column = alter_result.is_ok();
+    if let Err(e) = alter_result {
         if !e.to_string().contains("duplicate column name") {
             return Err(e);
         }
     }
-    sqlx::raw_sql(
-        "UPDATE profiles SET sort_order = (SELECT COUNT(*) FROM profiles p2 WHERE p2.created_at <= profiles.created_at)",
-    )
-    .execute(pool)
-    .await?;
+    // Only initialize sort_order when the column is newly added
+    if is_new_column {
+        sqlx::raw_sql(
+            "UPDATE profiles SET sort_order = (SELECT COUNT(*) FROM profiles p2 WHERE p2.created_at <= profiles.created_at)",
+        )
+        .execute(pool)
+        .await?;
+    }
     Ok(())
 }

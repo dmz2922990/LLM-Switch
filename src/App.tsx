@@ -4,7 +4,7 @@ import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { getVersion } from "@tauri-apps/api/app";
 import { listen } from "@tauri-apps/api/event";
-import { check } from "@tauri-apps/plugin-updater";
+import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
 import type { Profile, Host, TabId } from "./types";
 import { api } from "./api";
@@ -33,6 +33,8 @@ function App() {
   const [showAbout, setShowAbout] = useState(false);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ state: "idle" });
   const [appVersion, setAppVersion] = useState("");
+  const [startupUpdate, setStartupUpdate] = useState<Update | null>(null);
+  const [showStartupUpdateDialog, setShowStartupUpdateDialog] = useState(false);
 
   const refresh = useCallback(async () => {
     try {
@@ -77,6 +79,25 @@ function App() {
       unlistenFileChanged.then((fn) => fn());
     };
   }, [refresh]);
+
+  useEffect(() => {
+    const SKIPPED_VERSION_KEY = "llm-switch-skipped-version";
+    const checkForStartupUpdate = async () => {
+      try {
+        const update = await check();
+        if (update) {
+          const skippedVersion = localStorage.getItem(SKIPPED_VERSION_KEY);
+          if (skippedVersion !== update.version) {
+            setStartupUpdate(update);
+            setShowStartupUpdateDialog(true);
+          }
+        }
+      } catch {
+        // Silently ignore check failures
+      }
+    };
+    checkForStartupUpdate();
+  }, []);
 
   const handleCheckUpdate = useCallback(async () => {
     setUpdateStatus({ state: "checking" });
@@ -124,6 +145,47 @@ function App() {
 
   const handleGoToDownload = useCallback(() => {
     invoke("open_github").catch(() => {});
+  }, []);
+
+  const handleStartupUpgrade = useCallback(async () => {
+    setShowStartupUpdateDialog(false);
+    if (!startupUpdate) return;
+    try {
+      let downloaded = 0;
+      let contentLength = 0;
+      await startupUpdate.downloadAndInstall((event) => {
+        switch (event.event) {
+          case "Started":
+            contentLength = event.data.contentLength ?? 0;
+            break;
+          case "Progress":
+            downloaded += event.data.chunkLength;
+            if (contentLength > 0) {
+              setUpdateStatus({ state: "downloading", percent: Math.round((downloaded / contentLength) * 100) });
+            }
+            break;
+          case "Finished":
+            setUpdateStatus({ state: "downloadComplete" });
+            break;
+        }
+      });
+      await relaunch();
+    } catch {
+      invoke("open_github").catch(() => {});
+    }
+  }, [startupUpdate]);
+
+  const handleSkipVersion = useCallback(() => {
+    if (startupUpdate) {
+      localStorage.setItem("llm-switch-skipped-version", startupUpdate.version);
+    }
+    setShowStartupUpdateDialog(false);
+    setStartupUpdate(null);
+  }, [startupUpdate]);
+
+  const handleDismissStartupUpdate = useCallback(() => {
+    setShowStartupUpdateDialog(false);
+    setStartupUpdate(null);
   }, []);
 
   const selectedProfile = profiles.find((p) => p.id === selectedProfileId) ?? null;
@@ -237,6 +299,34 @@ function App() {
 
             <div className="dialog-actions" style={{ justifyContent: "center" }}>
               <button className="btn-primary btn-sm" onClick={() => { setShowAbout(false); setUpdateStatus({ state: "idle" }); }}>{t("common.confirm")}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Startup update notification dialog */}
+      {showStartupUpdateDialog && startupUpdate && (
+        <div className="dialog-overlay" onClick={handleDismissStartupUpdate}>
+          <div className="dialog" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center", minWidth: 360 }}>
+            <h3 style={{ marginBottom: 8 }}>{t("updater.startupNewVersion")}</h3>
+            <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 8 }}>
+              {t("updater.startupNewVersionDesc", { version: startupUpdate.version, currentVersion: appVersion ? `v${appVersion}` : "" })}
+            </p>
+            {startupUpdate.body && (
+              <p style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 12, maxHeight: 120, overflowY: "auto", textAlign: "left" }}>
+                {startupUpdate.body}
+              </p>
+            )}
+            <div className="dialog-actions" style={{ justifyContent: "center" }}>
+              <button className="btn-secondary" onClick={handleDismissStartupUpdate}>
+                {t("common.cancel")}
+              </button>
+              <button className="btn-secondary" onClick={handleSkipVersion}>
+                {t("updater.skipVersion")}
+              </button>
+              <button className="btn-primary" onClick={handleStartupUpgrade}>
+                {t("updater.upgrade")}
+              </button>
             </div>
           </div>
         </div>

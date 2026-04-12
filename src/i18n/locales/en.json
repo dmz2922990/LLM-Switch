@@ -93,6 +93,10 @@
     "downloadComplete": "Download complete, restarting...",
     "downloadAndRestart": "Download & Restart",
     "goToDownload": "Go to Download",
-    "updateFailed": "Update failed, opening download page..."
+    "updateFailed": "Update failed, opening download page...",
+    "startupNewVersion": "Update Available",
+    "startupNewVersionDesc": "LLM Switch {{currentVersion}} can be updated to {{version}}",
+    "skipVersion": "Skip This Version",
+    "upgrade": "Upgrade"
   }
 }

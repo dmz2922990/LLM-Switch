@@ -1,5 +1,6 @@
 use crate::models::sync_history::SyncResult;
 use crate::services::{host_service, profile_service, sync_history_service};
+use serde_json::Value;
 use sha2::{Digest, Sha256};
 use sqlx::SqlitePool;
 use ssh2::Session;
@@ -17,7 +18,36 @@ fn compute_short_hash(data: &[u8]) -> String {
     hash[..6].iter().map(|b| format!("{:02x}", b)).collect()
 }
 
-pub async fn sync_to_host(pool: &SqlitePool, profile_id: &str, host_id: &str) -> SyncResult {
+fn merge_json(local: &str, remote_existing: Option<&[u8]>, sync_keys: &[String]) -> String {
+    if sync_keys.iter().any(|k| k == "*") {
+        return local.to_string();
+    }
+
+    let local_obj: Value =
+        serde_json::from_str(local).unwrap_or_else(|_| Value::Object(Default::default()));
+    let remote_obj: Value = match remote_existing {
+        Some(data) => serde_json::from_slice(data).unwrap_or_else(|_| Value::Object(Default::default())),
+        None => Value::Object(Default::default()),
+    };
+
+    let mut merged = remote_obj;
+    if let (Value::Object(ref mut m), Value::Object(ref l)) = (&mut merged, &local_obj) {
+        for key in sync_keys {
+            if let Some(val) = l.get(key) {
+                m.insert(key.clone(), val.clone());
+            }
+        }
+    }
+
+    serde_json::to_string_pretty(&merged).unwrap_or_else(|_| local.to_string())
+}
+
+pub async fn sync_to_host(
+    pool: &SqlitePool,
+    profile_id: &str,
+    host_id: &str,
+    sync_keys: &[String],
+) -> SyncResult {
     let profile = match profile_service::get_by_id(pool, profile_id).await {
         Ok(p) => p,
         Err(e) => {
@@ -59,6 +89,7 @@ pub async fn sync_to_host(pool: &SqlitePool, profile_id: &str, host_id: &str) ->
         host.key_path.as_deref(),
         &host.remote_path,
         &profile.settings_json,
+        sync_keys,
     ) {
         Ok(upload) => {
             let _ = sync_history_service::record(
@@ -104,10 +135,11 @@ pub async fn sync_to_hosts(
     pool: &SqlitePool,
     profile_id: &str,
     host_ids: &[String],
+    sync_keys: &[String],
 ) -> Vec<SyncResult> {
     let mut results = Vec::new();
     for host_id in host_ids {
-        let result = sync_to_host(pool, profile_id, host_id).await;
+        let result = sync_to_host(pool, profile_id, host_id, sync_keys).await;
         results.push(result);
     }
     results
@@ -120,7 +152,8 @@ fn do_scp_upload(
     password: Option<&str>,
     key_path: Option<&str>,
     remote_path: &str,
-    content: &str,
+    local_content: &str,
+    sync_keys: &[String],
 ) -> Result<UploadResult, String> {
     let addr = format!("{}:{}", address, port);
     let tcp =
@@ -133,12 +166,12 @@ fn do_scp_upload(
     authenticate(&mut session, username, password, key_path)?;
     let remote = expand_remote_path(&session, remote_path)?;
 
-    let source_hash = read_remote_file(&session, &remote)
-        .ok()
-        .map(|data| compute_short_hash(&data));
+    let remote_data = read_remote_file(&session, &remote).ok();
+    let source_hash = remote_data.as_ref().map(|d| compute_short_hash(d));
+    let content = merge_json(local_content, remote_data.as_deref(), sync_keys);
     let target_hash = compute_short_hash(content.as_bytes());
 
-    upload_content(&session, &remote, content)?;
+    upload_content(&session, &remote, &content)?;
     session.disconnect(None, "Done", None).ok();
     Ok(UploadResult {
         source_hash,
@@ -195,7 +228,6 @@ fn read_remote_file(session: &Session, remote_path: &str) -> Result<Vec<u8>, Str
 }
 
 fn upload_content(session: &Session, remote_path: &str, content: &str) -> Result<(), String> {
-    let size = content.len() as u64;
     let sftp = session
         .sftp()
         .map_err(|e| format!("SFTP init failed: {}", e))?;

@@ -112,6 +112,7 @@ pub fn run() {
             commands::set_active_profile,
             commands::get_active_profile,
             commands::update_profile_settings,
+            commands::update_profile_sync_keys,
             commands::reorder_profiles,
             commands::create_host,
             commands::list_hosts,

@@ -213,6 +213,23 @@ async fn rollback_active(pool: &SqlitePool, _previous_json: &Option<String>) -> 
     Ok(())
 }
 
+pub async fn update_sync_keys(
+    pool: &SqlitePool,
+    id: &str,
+    sync_keys_json: &str,
+) -> Result<Profile, String> {
+    let now = chrono::Utc::now().to_rfc3339();
+    sqlx::query_as::<_, Profile>(
+        "UPDATE profiles SET sync_keys = ?, updated_at = ? WHERE id = ? RETURNING *",
+    )
+    .bind(sync_keys_json)
+    .bind(&now)
+    .bind(id)
+    .fetch_one(pool)
+    .await
+    .map_err(|e| format!("Failed to update sync_keys: {}", e))
+}
+
 pub async fn reorder(pool: &SqlitePool, ordered_ids: &[String]) -> Result<(), String> {
     let mut tx = pool.begin().await.map_err(|e| format!("Failed to begin transaction: {}", e))?;
     for (index, id) in ordered_ids.iter().enumerate() {

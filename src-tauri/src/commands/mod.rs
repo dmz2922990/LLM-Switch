@@ -162,7 +162,10 @@ pub async fn sync_to_host(
     profile_id: String,
     host_id: String,
 ) -> Result<crate::models::sync_history::SyncResult, String> {
-    Ok(sync_service::sync_to_host(&pool, &profile_id, &host_id).await)
+    let profile = profile_service::get_by_id(&pool, &profile_id).await?;
+    let sync_keys: Vec<String> = serde_json::from_str(&profile.sync_keys)
+        .unwrap_or_else(|_| vec!["env".to_string()]);
+    Ok(sync_service::sync_to_host(&pool, &profile_id, &host_id, &sync_keys).await)
 }
 
 #[tauri::command]
@@ -171,7 +174,19 @@ pub async fn sync_to_hosts(
     profile_id: String,
     host_ids: Vec<String>,
 ) -> Result<Vec<crate::models::sync_history::SyncResult>, String> {
-    Ok(sync_service::sync_to_hosts(&pool, &profile_id, &host_ids).await)
+    let profile = profile_service::get_by_id(&pool, &profile_id).await?;
+    let sync_keys: Vec<String> = serde_json::from_str(&profile.sync_keys)
+        .unwrap_or_else(|_| vec!["env".to_string()]);
+    Ok(sync_service::sync_to_hosts(&pool, &profile_id, &host_ids, &sync_keys).await)
+}
+
+#[tauri::command]
+pub async fn update_profile_sync_keys(
+    pool: tauri::State<'_, SqlitePool>,
+    id: String,
+    sync_keys_json: String,
+) -> Result<Profile, String> {
+    profile_service::update_sync_keys(&pool, &id, &sync_keys_json).await
 }
 
 #[tauri::command]

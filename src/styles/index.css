@@ -372,6 +372,30 @@ input:focus, select:focus {
   gap: 16px;
 }
 
+.sync-scope-panel {
+  background: var(--bg-surface);
+  border-radius: var(--radius);
+  padding: 10px 14px;
+}
+
+.sync-key-item {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  cursor: pointer;
+  color: var(--text-primary);
+  background: var(--bg-hover);
+  border-radius: 4px;
+  padding: 2px 8px;
+}
+
+.scope-hint {
+  font-size: 11px;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
 .sync-result {
   display: flex;
   align-items: center;

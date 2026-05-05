@@ -4,6 +4,7 @@ export interface Profile {
   settings_json: string;
   is_active: boolean;
   sort_order: number;
+  sync_keys: string;
   created_at: string;
   updated_at: string;
 }

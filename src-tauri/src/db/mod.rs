@@ -51,5 +51,16 @@ async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
         .execute(pool)
         .await?;
     }
+    // Migration 004: add sync_keys for selective sync scope
+    let m4 = sqlx::raw_sql(
+        "ALTER TABLE profiles ADD COLUMN sync_keys TEXT NOT NULL DEFAULT '[\"env\"]'",
+    )
+    .execute(pool)
+    .await;
+    if let Err(e) = m4 {
+        if !e.to_string().contains("duplicate column name") {
+            return Err(e);
+        }
+    }
     Ok(())
 }

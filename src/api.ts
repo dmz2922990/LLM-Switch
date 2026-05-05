@@ -16,6 +16,8 @@ export const api = {
     getActive: () => invoke<Profile | null>("get_active_profile"),
     updateSettings: (id: string, settingsJson: string) =>
       invoke<Profile>("update_profile_settings", { id, settingsJson }),
+    updateSyncKeys: (id: string, syncKeysJson: string) =>
+      invoke<Profile>("update_profile_sync_keys", { id, syncKeysJson }),
     reorder: (orderedIds: string[]) =>
       invoke<void>("reorder_profiles", { orderedIds }),
   },

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useTranslation } from "react-i18next";
 import type { Profile, Host, SyncResult, SyncHistory } from "../types";
 import { api } from "../api";
@@ -15,6 +15,23 @@ function formatSyncDate(iso: string): string {
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 }
 
+function parseTopLevelKeys(json: string): string[] {
+  try {
+    const obj = JSON.parse(json);
+    if (obj && typeof obj === "object" && !Array.isArray(obj)) {
+      return Object.keys(obj);
+    }
+  } catch {}
+  return [];
+}
+
+function parseSyncKeys(syncKeysJson: string): string[] {
+  try {
+    return JSON.parse(syncKeysJson);
+  } catch {}
+  return ["env"];
+}
+
 export function SyncPanel({ profiles, hosts, onRefresh }: Props) {
   const { t } = useTranslation();
   const [selectedProfile, setSelectedProfile] = useState(() => {
@@ -25,11 +42,22 @@ export function SyncPanel({ profiles, hosts, onRefresh }: Props) {
     const def = hosts.find((h) => h.is_default);
     return def ? new Set([def.id]) : new Set();
   });
+  const [syncKeys, setSyncKeys] = useState<Set<string>>(new Set(["env"]));
   const [syncing, setSyncing] = useState(false);
   const [results, setResults] = useState<SyncResult[]>([]);
   const [history, setHistory] = useState<SyncHistory[]>([]);
   const [historyPage, setHistoryPage] = useState(1);
   const historyPageSize = 4;
+
+  const currentProfile = useMemo(
+    () => profiles.find((p) => p.id === selectedProfile),
+    [profiles, selectedProfile],
+  );
+
+  const topLevelKeys = useMemo(
+    () => (currentProfile ? parseTopLevelKeys(currentProfile.settings_json) : []),
+    [currentProfile],
+  );
 
   useEffect(() => {
     if (!selectedProfile) {
@@ -46,6 +74,12 @@ export function SyncPanel({ profiles, hosts, onRefresh }: Props) {
   }, [hosts]);
 
   useEffect(() => {
+    if (currentProfile) {
+      setSyncKeys(new Set(parseSyncKeys(currentProfile.sync_keys)));
+    }
+  }, [currentProfile?.id]);
+
+  useEffect(() => {
     loadHistory();
   }, []);
 
@@ -56,6 +90,20 @@ export function SyncPanel({ profiles, hosts, onRefresh }: Props) {
       else next.add(id);
       return next;
     });
+  };
+
+  const handleSyncKeysChange = async (newKeys: Set<string>) => {
+    setSyncKeys(newKeys);
+    if (currentProfile) {
+      try {
+        await api.profile.updateSyncKeys(
+          currentProfile.id,
+          JSON.stringify(Array.from(newKeys)),
+        );
+      } catch {
+        // silently fail
+      }
+    }
   };
 
   const handleSync = async () => {
@@ -180,12 +228,72 @@ export function SyncPanel({ profiles, hosts, onRefresh }: Props) {
           )}
         </div>
 
+        {selectedProfile && topLevelKeys.length > 0 && (
+          <div className="sync-scope-panel">
+            <div
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "space-between",
+                marginBottom: 6,
+              }}
+            >
+              <label
+                style={{
+                  fontSize: 12,
+                  color: "var(--text-secondary)",
+                }}
+              >
+                {t("sync.syncScope")}
+              </label>
+              <button
+                className="btn-secondary btn-sm"
+                onClick={() => handleSyncKeysChange(
+                  syncKeys.size === topLevelKeys.length
+                    ? new Set()
+                    : new Set(topLevelKeys),
+                )}
+              >
+                {t("sync.selectAll")}
+              </button>
+            </div>
+            <div
+              style={{
+                display: "flex",
+                flexWrap: "wrap",
+                gap: 6,
+              }}
+            >
+              {topLevelKeys.map((key) => (
+                <label
+                  key={key}
+                  className="sync-key-item"
+                >
+                  <input
+                    type="checkbox"
+                    checked={syncKeys.has(key)}
+                    onChange={() => {
+                      const next = new Set(syncKeys);
+                      if (next.has(key)) next.delete(key);
+                      else next.add(key);
+                      handleSyncKeysChange(next);
+                    }}
+                    style={{ width: "auto" }}
+                  />
+                  {key}
+                </label>
+              ))}
+            </div>
+            <p className="scope-hint">{t("sync.scopeHint")}</p>
+          </div>
+        )}
+
         <div style={{ display: "flex", gap: 8 }}>
           <button
             className="btn-primary"
             onClick={handleSync}
             disabled={
-              !selectedProfile || selectedHosts.size === 0 || syncing
+              !selectedProfile || selectedHosts.size === 0 || syncing || syncKeys.size === 0
             }
           >
             {syncing ? t("sync.syncing") : t("sync.syncButton")}

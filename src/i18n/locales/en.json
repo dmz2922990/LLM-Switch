@@ -51,7 +51,11 @@
     "setDefault": "Set Default",
     "hashNA": "N/A",
     "prevPage": "Prev",
-    "nextPage": "Next"
+    "nextPage": "Next",
+    "syncScope": "Sync Scope",
+    "selectAll": "Select All",
+    "scopeHint": "Unchecked fields will keep their remote values",
+    "noKeysFound": "No fields available (empty or invalid JSON)"
   },
   "host": {
     "title": "Remote Hosts",

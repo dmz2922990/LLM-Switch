@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import Editor from "@monaco-editor/react";
 import type { Profile } from "../types";
 import { api } from "../api";
+import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 
 interface Props {
   profile: Profile;
@@ -113,8 +114,26 @@ export function SettingsEditor({ profile, onSaved }: Props) {
     }
   };
 
-  const handleEditorMount = (editor: any) => {
+  const handleEditorMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
+      const selection = editor.getSelection();
+      const selectedText = editor.getModel()?.getValueInRange(selection);
+      if (selectedText) {
+        writeText(selectedText);
+      }
+    });
+    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX, () => {
+      const selection = editor.getSelection();
+      const selectedText = editor.getModel()?.getValueInRange(selection);
+      if (selectedText) {
+        writeText(selectedText);
+        editor.executeEdits("cut", [{
+          range: selection,
+          text: "",
+        }]);
+      }
+    });
   };
 
   const handleEditorChange = (v: string | undefined) => {

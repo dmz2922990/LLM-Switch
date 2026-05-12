@@ -81,22 +81,7 @@ function App() {
   }, [refresh]);
 
   useEffect(() => {
-    const SKIPPED_VERSION_KEY = "llm-switch-skipped-version";
-    const checkForStartupUpdate = async () => {
-      try {
-        const update = await check();
-        if (update) {
-          const skippedVersion = localStorage.getItem(SKIPPED_VERSION_KEY);
-          if (skippedVersion !== update.version) {
-            setStartupUpdate(update);
-            setShowStartupUpdateDialog(true);
-          }
-        }
-      } catch {
-        // Silently ignore check failures
-      }
-    };
-    checkForStartupUpdate();
+    // Startup update check disabled to avoid blocking the UI
   }, []);
 
   const handleCheckUpdate = useCallback(async () => {

@@ -3,7 +3,6 @@ import { useTranslation } from "react-i18next";
 import Editor from "@monaco-editor/react";
 import type { Profile } from "../types";
 import { api } from "../api";
-import { writeText } from "@tauri-apps/plugin-clipboard-manager";
 
 interface Props {
   profile: Profile;
@@ -24,6 +23,7 @@ export function SettingsEditor({ profile, onSaved }: Props) {
   const [content, setContent] = useState(profile.settings_json);
   const [savedContent, setSavedContent] = useState(profile.settings_json);
   const [error, setError] = useState<string | null>(null);
+  const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [quickSettings, setQuickSettings] = useState<QuickSettings>({
     baseUrl: "",
     authToken: "",
@@ -114,32 +114,105 @@ export function SettingsEditor({ profile, onSaved }: Props) {
     }
   };
 
-  const handleEditorMount = (editor: any, monaco: any) => {
+  const doEditorCopy = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const selection = editor.getSelection();
+    const text = editor.getModel()?.getValueInRange(selection);
+    if (text) api.clipboard.write(text);
+    setContextMenu(null);
+  }, []);
+
+  const doEditorCut = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const selection = editor.getSelection();
+    const text = editor.getModel()?.getValueInRange(selection);
+    if (text) {
+      api.clipboard.write(text);
+      editor.executeEdits("cut", [{ range: selection, text: "" }]);
+    }
+    setContextMenu(null);
+  }, []);
+
+  const doSelectAll = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const model = editor.getModel();
+    if (model) editor.setSelection(model.getFullModelRange());
+    setContextMenu(null);
+  }, []);
+
+  // Intercept Cmd+C/X via capture-phase keydown to write to system clipboard
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!(e.metaKey || e.ctrlKey)) return;
+      const editor = editorRef.current;
+      if (!editor || !editor.hasTextFocus()) return;
+
+      if (e.key === "c") {
+        e.preventDefault();
+        e.stopPropagation();
+        const selection = editor.getSelection();
+        const text = editor.getModel()?.getValueInRange(selection);
+        if (text) api.clipboard.write(text);
+      } else if (e.key === "x") {
+        e.preventDefault();
+        e.stopPropagation();
+        const selection = editor.getSelection();
+        const text = editor.getModel()?.getValueInRange(selection);
+        if (text) {
+          api.clipboard.write(text);
+          editor.executeEdits("cut", [{ range: selection, text: "" }]);
+        }
+      }
+    };
+    document.addEventListener("keydown", handleKeyDown, true);
+    return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, []);
+
+  // Close custom context menu on outside interaction
+  useEffect(() => {
+    if (!contextMenu) return;
+    const close = () => setContextMenu(null);
+    window.addEventListener("click", close);
+    window.addEventListener("contextmenu", close);
+    window.addEventListener("scroll", close, true);
+    return () => {
+      window.removeEventListener("click", close);
+      window.removeEventListener("contextmenu", close);
+      window.removeEventListener("scroll", close, true);
+    };
+  }, [contextMenu]);
+
+  const handleEditorMount = (editor: any, _monaco: any) => {
     editorRef.current = editor;
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyC, () => {
-      const selection = editor.getSelection();
-      const selectedText = editor.getModel()?.getValueInRange(selection);
-      if (selectedText) {
-        writeText(selectedText);
-      }
-    });
-    editor.addCommand(monaco.KeyMod.CtrlCmd | monaco.KeyCode.KeyX, () => {
-      const selection = editor.getSelection();
-      const selectedText = editor.getModel()?.getValueInRange(selection);
-      if (selectedText) {
-        writeText(selectedText);
-        editor.executeEdits("cut", [{
-          range: selection,
-          text: "",
-        }]);
-      }
-    });
+    const editorDom = editor.getDomNode();
+    if (editorDom) {
+      editorDom.addEventListener(
+        "contextmenu",
+        (e: MouseEvent) => {
+          e.preventDefault();
+          e.stopPropagation();
+          setContextMenu({ x: e.clientX, y: e.clientY });
+        },
+        true
+      );
+    }
   };
 
   const handleEditorChange = (v: string | undefined) => {
     const newContent = v || "";
     setContent(newContent);
     parseQuickSettings(newContent);
+  };
+
+  const ctxMenuItem: React.CSSProperties = {
+    padding: "6px 24px",
+    cursor: "pointer",
+    fontSize: 13,
+    color: "#ccc",
+    whiteSpace: "nowrap",
   };
 
   return (
@@ -212,7 +285,7 @@ export function SettingsEditor({ profile, onSaved }: Props) {
         </div>
       </div>
 
-      <div style={{ flex: 1 }}>
+      <div style={{ flex: 1, position: "relative" }}>
         <Editor
           height="100%"
           language="json"
@@ -222,6 +295,7 @@ export function SettingsEditor({ profile, onSaved }: Props) {
           onMount={handleEditorMount}
           options={{
             minimap: { enabled: false },
+            contextmenu: false,
             fontSize: 13,
             lineNumbers: "on",
             scrollBeyondLastLine: false,
@@ -229,6 +303,49 @@ export function SettingsEditor({ profile, onSaved }: Props) {
             tabSize: 2,
           }}
         />
+        {contextMenu && (
+          <div
+            style={{
+              position: "fixed",
+              left: contextMenu.x,
+              top: contextMenu.y,
+              zIndex: 10000,
+              background: "#252526",
+              border: "1px solid #454545",
+              borderRadius: 4,
+              padding: "4px 0",
+              boxShadow: "0 2px 8px rgba(0,0,0,0.36)",
+              minWidth: 160,
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div
+              style={ctxMenuItem}
+              onClick={doEditorCopy}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#094771")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              Copy ⌘C
+            </div>
+            <div
+              style={ctxMenuItem}
+              onClick={doEditorCut}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#094771")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              Cut ⌘X
+            </div>
+            <div style={{ height: 1, background: "#454545", margin: "4px 0" }} />
+            <div
+              style={ctxMenuItem}
+              onClick={doSelectAll}
+              onMouseEnter={(e) => (e.currentTarget.style.background = "#094771")}
+              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
+            >
+              Select All ⌘A
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

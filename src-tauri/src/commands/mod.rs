@@ -203,6 +203,16 @@ pub async fn list_sync_history(
 }
 
 #[tauri::command]
+pub fn write_clipboard(text: String) -> Result<(), String> {
+    let mut clipboard = arboard::Clipboard::new()
+        .map_err(|e| format!("Failed to access clipboard: {}", e))?;
+    clipboard
+        .set_text(&text)
+        .map_err(|e| format!("Failed to write to clipboard: {}", e))?;
+    Ok(())
+}
+
+#[tauri::command]
 pub async fn open_github(app: tauri::AppHandle) -> Result<(), String> {
     use tauri_plugin_opener::OpenerExt;
     app.opener()

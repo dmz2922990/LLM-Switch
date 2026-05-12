@@ -3,6 +3,9 @@ import type { Profile, Host, SyncHistory, SyncResult } from "./types";
 
 // Profile API
 export const api = {
+  clipboard: {
+    write: (text: string) => invoke<void>("write_clipboard", { text }),
+  },
   profile: {
     create: (name: string, settingsJson?: string) =>
       invoke<Profile>("create_profile", { input: { name, settings_json: settingsJson } }),

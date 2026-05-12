@@ -14,7 +14,6 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
-        .plugin(tauri_plugin_clipboard_manager::init())
         .setup(|app| {
             let about_item =
                 MenuItemBuilder::with_id("macos_about", "About LLM Switch").build(app)?;
@@ -114,6 +113,7 @@ pub fn run() {
             commands::get_active_profile,
             commands::update_profile_settings,
             commands::update_profile_sync_keys,
+            commands::write_clipboard,
             commands::reorder_profiles,
             commands::create_host,
             commands::list_hosts,

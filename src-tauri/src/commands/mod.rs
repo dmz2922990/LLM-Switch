@@ -3,7 +3,7 @@ use crate::models::host::{CreateHost, UpdateHost};
 use crate::models::profile::Profile;
 use crate::models::profile::{CopyProfile, CreateProfile, RenameProfile};
 use crate::models::sync_history::SyncHistory;
-use crate::services::{host_service, profile_service, sync_history_service, sync_service};
+use crate::services::{host_service, profile_service, sync_history_service, sync_service, usage_service};
 use sqlx::SqlitePool;
 
 #[tauri::command]
@@ -244,4 +244,11 @@ pub async fn update_tray_labels(
     };
     tray_state.update_labels(&app, labels).await;
     Ok(())
+}
+
+#[tauri::command]
+pub async fn get_usage_info(base_url: String, auth_token: String) -> Result<Option<crate::models::usage::UsageInfo>, String> {
+    usage_service::get_usage(&base_url, &auth_token)
+        .await
+        .map_err(|e| e.to_string())
 }

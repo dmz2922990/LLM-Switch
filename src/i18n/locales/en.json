@@ -102,5 +102,10 @@
     "startupNewVersionDesc": "LLM Switch {{currentVersion}} can be updated to {{version}}",
     "skipVersion": "Skip This Version",
     "upgrade": "Upgrade"
+  },
+  "usage": {
+    "refresh": "Refresh Usage",
+    "nextRefresh": "Next refresh",
+    "resetAt": "Resets at"
   }
 }

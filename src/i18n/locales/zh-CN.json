@@ -102,5 +102,10 @@
     "startupNewVersionDesc": "LLM Switch {{currentVersion}} 可更新至 {{version}}",
     "skipVersion": "跳过此版本",
     "upgrade": "立即升级"
+  },
+  "usage": {
+    "refresh": "刷新用量",
+    "nextRefresh": "下次刷新",
+    "resetAt": "重置于"
   }
 }

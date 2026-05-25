@@ -42,4 +42,15 @@ export interface SyncResult {
   error_message: string | null;
 }
 
+export interface QuotaInfo {
+  label: string;
+  percentage: number;
+  next_reset_time: number;
+}
+
+export interface UsageInfo {
+  provider_name: string;
+  quotas: QuotaInfo[];
+}
+
 export type TabId = "editor" | "sync" | "hosts";

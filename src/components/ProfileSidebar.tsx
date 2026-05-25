@@ -3,6 +3,7 @@ import { useTranslation } from "react-i18next";
 import type { Profile } from "../types";
 import { api } from "../api";
 import { changeLanguage, getCurrentLanguage } from "../i18n";
+import { UsageDisplay } from "./UsageDisplay";
 
 interface Props {
   profiles: Profile[];
@@ -178,6 +179,7 @@ export function ProfileSidebar({ profiles, selectedId, onSelect, onRefresh, onSw
               <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setCopyingId(p.id); }} title={t("common.copy")}>⧉</button>
               <button className="btn-secondary btn-sm" onClick={(e) => { e.stopPropagation(); setDeletingId(p.id); }} title={t("common.delete")}>✕</button>
             </div>
+            <UsageDisplay profile={p} />
             <div className="profile-sort-arrows">
               <button className="sort-arrow" disabled={idx === 0} onClick={(e) => { e.stopPropagation(); moveProfile(idx, -1); }}>▲</button>
               <button className="sort-arrow" disabled={idx === profiles.length - 1} onClick={(e) => { e.stopPropagation(); moveProfile(idx, 1); }}>▼</button>

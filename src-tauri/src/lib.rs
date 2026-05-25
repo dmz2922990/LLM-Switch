@@ -128,6 +128,7 @@ pub fn run() {
             commands::open_github,
             commands::refresh_tray_menu,
             commands::update_tray_labels,
+            commands::get_usage_info,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

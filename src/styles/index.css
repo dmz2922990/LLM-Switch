@@ -175,12 +175,16 @@ input:focus, select:focus {
   position: relative;
   display: flex;
   flex-direction: column;
-  padding: 10px 12px;
+  padding: 10px 12px 10px 12px;
   border-radius: var(--radius);
   cursor: pointer;
   transition: background 0.15s;
   gap: 6px;
   margin-bottom: 2px;
+}
+
+.profile-item:has(.profile-usage) {
+  padding-right: 28px;
 }
 
 .profile-item-top {
@@ -201,7 +205,7 @@ input:focus, select:focus {
   position: absolute;
   right: 4px;
   top: 2px;
-  bottom: 2px;
+  height: 28px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -474,4 +478,78 @@ input:focus, select:focus {
   color: var(--text-secondary);
   min-width: 40px;
   text-align: center;
+}
+
+.profile-usage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0 0;
+}
+
+.profile-usage-quota {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.profile-usage-label {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.profile-usage-bar {
+  width: 40px;
+  height: 4px;
+  background: var(--bg-hover);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.profile-usage-bar-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.3s ease, background 0.3s ease;
+}
+
+.profile-usage-pct {
+  font-size: 10px;
+  font-weight: 600;
+  min-width: 28px;
+}
+
+.profile-usage-refresh {
+  background: none;
+  color: var(--text-muted);
+  font-size: 11px;
+  padding: 0 2px;
+  line-height: 1;
+  position: absolute;
+  right: 4px;
+  bottom: 10px;
+  opacity: 0;
+  transition: opacity 0.15s;
+}
+
+.profile-item:hover .profile-usage-refresh { opacity: 1; }
+
+.profile-usage-refresh:hover:not(:disabled) {
+  color: var(--accent);
+  background: none;
+}
+
+.profile-usage-tooltip {
+  position: absolute;
+  bottom: calc(100% + 4px);
+  left: 0;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  font-size: 10px;
+  padding: 3px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  z-index: 10;
+  pointer-events: none;
 }

@@ -1,5 +1,4 @@
 use crate::models::usage::{QuotaInfo, UsageInfo};
-use chrono::TimeZone;
 use reqwest::Client;
 use serde_json::Value;
 use std::time::Duration;
@@ -81,18 +80,9 @@ async fn fetch_zhipu_usage(token: &str) -> Result<UsageInfo, ProviderError> {
 // --- Kimi fetch ---
 
 fn parse_iso_to_ms(iso: &str) -> i64 {
-    let trimmed = iso.trim_end_matches('Z');
-    chrono::NaiveDateTime::parse_from_str(trimmed, "%Y-%m-%dT%H:%M:%S%.f")
-        .ok()
-        .and_then(|dt| {
-            let local = chrono::Local.from_local_datetime(&dt).single()?;
-            Some(local.timestamp_millis())
-        })
-        .unwrap_or_else(|| {
-            chrono::DateTime::parse_from_rfc3339(iso)
-                .map(|dt| dt.timestamp_millis())
-                .unwrap_or(0)
-        })
+    chrono::DateTime::parse_from_rfc3339(iso)
+        .map(|dt| dt.timestamp_millis())
+        .unwrap_or(0)
 }
 
 async fn fetch_kimi_usage(token: &str) -> Result<UsageInfo, ProviderError> {

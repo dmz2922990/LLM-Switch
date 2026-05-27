@@ -32,7 +32,7 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
   const { t } = useTranslation();
   const [usage, setUsage] = useState<UsageInfo | null>(null);
   const [loading, setLoading] = useState(false);
-  const [hovered, setHovered] = useState<string | null>(null);
+  const [hovered, setHovered] = useState<{ label: string; top: number; left: number } | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const env = parseEnv(profile.settings_json);
@@ -74,9 +74,11 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
         <div
           key={q.label}
           className="profile-usage-quota"
-          onMouseEnter={() => setHovered(q.label)}
+          onMouseEnter={(e) => {
+            const rect = e.currentTarget.getBoundingClientRect();
+            setHovered({ label: q.label, top: rect.top - 4, left: rect.left });
+          }}
           onMouseLeave={() => setHovered(null)}
-          style={{ position: "relative" }}
         >
           <span className="profile-usage-label">{q.label}</span>
           <div className="profile-usage-bar">
@@ -89,13 +91,6 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
             />
           </div>
           <span className="profile-usage-pct">{q.percentage.toFixed(0)}%</span>
-          {hovered === q.label && (
-            <div className="profile-usage-tooltip">
-              {q.remaining && `${t("usage.remaining")}: ${q.remaining}`}
-              {q.remaining && q.next_reset_time ? " · " : ""}
-              {q.next_reset_time ? `${t("usage.resetAt")}: ${formatResetTime(q.next_reset_time)}` : ""}
-            </div>
-          )}
         </div>
       ))}
       <button
@@ -105,6 +100,19 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
       >
         {loading ? "..." : "↻"}
       </button>
+      {hovered && (() => {
+        const q = usage.quotas.find(q => q.label === hovered.label);
+        if (!q) return null;
+        const text = [
+          q.remaining && `${t("usage.remaining")}: ${q.remaining}`,
+          q.next_reset_time ? `${t("usage.resetAt")}: ${formatResetTime(q.next_reset_time)}` : "",
+        ].filter(Boolean).join(" · ");
+        return (
+          <div className="profile-usage-tooltip" style={{ top: hovered.top, left: hovered.left, transform: "translateY(-100%)" }}>
+            {text}
+          </div>
+        );
+      })()}
     </div>
   );
 }

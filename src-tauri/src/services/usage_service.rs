@@ -139,7 +139,7 @@ async fn fetch_kimi_usage(token: &str) -> Result<UsageInfo, ProviderError> {
                 label: "5h".to_string(),
                 percentage: pct,
                 next_reset_time: reset_time,
-                remaining: None,
+                remaining: Some(format!("{}/{}", used as i64, limit as i64)),
             });
         }
     }
@@ -168,30 +168,7 @@ async fn fetch_kimi_usage(token: &str) -> Result<UsageInfo, ProviderError> {
             label: "Weekly".to_string(),
             percentage: pct,
             next_reset_time: reset_time,
-            remaining: None,
-        });
-    }
-
-    if let Some(total) = resp.get("totalQuota") {
-        let limit: f64 = total
-            .get("limit")
-            .and_then(|v| v.as_str())
-            .and_then(|s| s.parse().ok())
-            .unwrap_or(1.0);
-        let remaining: f64 = total
-            .get("remaining")
-            .and_then(|v| v.as_str())
-            .and_then(|s| s.parse().ok())
-            .unwrap_or(0.0);
-
-        let used = limit - remaining;
-        let pct = if limit > 0.0 { used / limit * 100.0 } else { 0.0 };
-
-        quotas.push(QuotaInfo {
-            label: "Total".to_string(),
-            percentage: pct,
-            next_reset_time: 0,
-            remaining: Some(format!("{}/{}", remaining as i64, limit as i64)),
+            remaining: Some(format!("{}/{}", used as i64, limit as i64)),
         });
     }
 

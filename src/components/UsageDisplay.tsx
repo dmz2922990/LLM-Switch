@@ -91,9 +91,9 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
           <span className="profile-usage-pct">{q.percentage.toFixed(0)}%</span>
           {hovered === q.label && (
             <div className="profile-usage-tooltip">
-              {q.remaining
-                ? `${t("usage.remaining")}: ${q.remaining}`
-                : `${t("usage.resetAt")}: ${formatResetTime(q.next_reset_time)}`}
+              {q.remaining && `${t("usage.remaining")}: ${q.remaining}`}
+              {q.remaining && q.next_reset_time ? " · " : ""}
+              {q.next_reset_time ? `${t("usage.resetAt")}: ${formatResetTime(q.next_reset_time)}` : ""}
             </div>
           )}
         </div>

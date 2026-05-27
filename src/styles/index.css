@@ -78,7 +78,8 @@ button:disabled {
   background: var(--bg-surface);
   color: var(--text-primary);
 }
-.btn-secondary:hover:not(:disabled) { background: var(--bg-hover); }
+.btn-secondary:hover:not(:disabled) { background: rgba(255, 255, 255, 0.12); }
+.profile-item.active .btn-secondary { background: rgba(255, 255, 255, 0.06); }
 
 .switch-btn:hover:not(:disabled) { background: var(--accent); color: var(--bg-primary); }
 

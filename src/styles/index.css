@@ -502,7 +502,7 @@ input:focus, select:focus {
 .profile-usage-bar {
   width: 40px;
   height: 4px;
-  background: var(--bg-hover);
+  background: rgba(255, 255, 255, 0.08);
   border-radius: 2px;
   overflow: hidden;
 }

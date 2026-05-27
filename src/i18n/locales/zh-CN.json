@@ -106,6 +106,7 @@
   "usage": {
     "refresh": "刷新用量",
     "nextRefresh": "下次刷新",
-    "resetAt": "重置于"
+    "resetAt": "重置于",
+    "remaining": "剩余"
   }
 }

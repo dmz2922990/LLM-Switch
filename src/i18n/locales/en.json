@@ -106,6 +106,7 @@
   "usage": {
     "refresh": "Refresh Usage",
     "nextRefresh": "Next refresh",
-    "resetAt": "Resets at"
+    "resetAt": "Resets at",
+    "remaining": "Remaining"
   }
 }

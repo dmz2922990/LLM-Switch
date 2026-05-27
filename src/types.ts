@@ -46,6 +46,7 @@ export interface QuotaInfo {
   label: string;
   percentage: number;
   next_reset_time: number;
+  remaining?: string;
 }
 
 export interface UsageInfo {

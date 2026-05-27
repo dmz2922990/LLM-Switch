@@ -113,6 +113,37 @@ async fn fetch_kimi_usage(token: &str) -> Result<UsageInfo, ProviderError> {
 
     let mut quotas = Vec::new();
 
+    if let Some(limits) = resp.get("limits").and_then(|v| v.as_array()) {
+        if let Some(first) = limits.first() {
+            let detail = first.get("detail");
+            let limit: f64 = detail
+                .and_then(|d| d.get("limit"))
+                .and_then(|v| v.as_str())
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(1.0);
+            let remaining: f64 = detail
+                .and_then(|d| d.get("remaining"))
+                .and_then(|v| v.as_str())
+                .and_then(|s| s.parse().ok())
+                .unwrap_or(0.0);
+            let reset_time = detail
+                .and_then(|d| d.get("resetTime"))
+                .and_then(|v| v.as_str())
+                .map(parse_iso_to_ms)
+                .unwrap_or(0);
+
+            let used = limit - remaining;
+            let pct = if limit > 0.0 { used / limit * 100.0 } else { 0.0 };
+
+            quotas.push(QuotaInfo {
+                label: "5h".to_string(),
+                percentage: pct,
+                next_reset_time: reset_time,
+                remaining: None,
+            });
+        }
+    }
+
     if let Some(usage) = resp.get("usage") {
         let limit: f64 = usage
             .get("limit")
@@ -134,7 +165,7 @@ async fn fetch_kimi_usage(token: &str) -> Result<UsageInfo, ProviderError> {
         let pct = if limit > 0.0 { used / limit * 100.0 } else { 0.0 };
 
         quotas.push(QuotaInfo {
-            label: "5h".to_string(),
+            label: "Weekly".to_string(),
             percentage: pct,
             next_reset_time: reset_time,
             remaining: None,

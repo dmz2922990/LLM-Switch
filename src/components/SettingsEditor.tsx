@@ -24,6 +24,8 @@ export function SettingsEditor({ profile, onSaved }: Props) {
   const [savedContent, setSavedContent] = useState(profile.settings_json);
   const [error, setError] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
+  const [showSaved, setShowSaved] = useState(false);
+  const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [quickSettings, setQuickSettings] = useState<QuickSettings>({
     baseUrl: "",
     authToken: "",
@@ -99,6 +101,9 @@ export function SettingsEditor({ profile, onSaved }: Props) {
       await api.profile.updateSettings(profile.id, content);
       setSavedContent(content);
       onSaved();
+      setShowSaved(true);
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+      savedTimerRef.current = setTimeout(() => setShowSaved(false), 2000);
     } catch (e: any) {
       setError(e.toString());
     }
@@ -143,11 +148,19 @@ export function SettingsEditor({ profile, onSaved }: Props) {
     setContextMenu(null);
   }, []);
 
-  // Intercept Cmd+C/X via capture-phase keydown to write to system clipboard
+  // Intercept Cmd+C/X/S via capture-phase keydown to write to system clipboard / save
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!(e.metaKey || e.ctrlKey)) return;
       const editor = editorRef.current;
+
+      if (e.key === "s") {
+        e.preventDefault();
+        e.stopPropagation();
+        handleSave();
+        return;
+      }
+
       if (!editor || !editor.hasTextFocus()) return;
 
       if (e.key === "c") {
@@ -169,6 +182,13 @@ export function SettingsEditor({ profile, onSaved }: Props) {
     };
     document.addEventListener("keydown", handleKeyDown, true);
     return () => document.removeEventListener("keydown", handleKeyDown, true);
+  }, [handleSave]);
+
+  // Clear save toast timer on unmount
+  useEffect(() => {
+    return () => {
+      if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
+    };
   }, []);
 
   // Close custom context menu on outside interaction
@@ -303,6 +323,27 @@ export function SettingsEditor({ profile, onSaved }: Props) {
             tabSize: 2,
           }}
         />
+        {showSaved && (
+          <div
+            style={{
+              position: "absolute",
+              top: 24,
+              left: "50%",
+              transform: "translateX(-50%)",
+              zIndex: 10000,
+              background: "var(--success)",
+              color: "var(--bg-primary)",
+              fontSize: 12,
+              fontWeight: 600,
+              padding: "6px 16px",
+              borderRadius: 4,
+              boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
+              pointerEvents: "none",
+            }}
+          >
+            {t("editor.saved")}
+          </div>
+        )}
         {contextMenu && (
           <div
             style={{

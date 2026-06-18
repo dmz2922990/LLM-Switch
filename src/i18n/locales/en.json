@@ -35,6 +35,7 @@
     "formatFailed": "Cannot format: Invalid JSON",
     "format": "Format",
     "unsaved": "Unsaved changes",
+    "saved": "Saved",
     "activeHint": "Active profile — takes effect after saving"
   },
   "sync": {

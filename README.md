@@ -1,105 +1,105 @@
 # LLM Switch
 
-[中文文档](README_CN.md)
+[English](README_EN.md)
 
-> **Manage multiple Claude Code profiles in one clean, instrument-style dashboard.**
-> Switch configs, monitor usage, and sync to remote hosts — all in a fast native desktop app.
+> **在一个简洁的「仪表盘」式界面中管理多个 Claude Code 配置。**
+> 切换配置、监控用量、远程同步——一个原生桌面应用全部搞定。
 
-**LLM Switch** is a desktop application for developers who run multiple Claude Code configuration profiles. Instead of editing `~/.claude/settings.json` by hand, you get a visual dashboard to create, switch, monitor, and sync your configs — with native performance and a polished dark/light UI.
+**LLM Switch** 是一款面向开发者的桌面应用，用于管理多个 Claude Code 配置文件。告别手动编辑 `~/.claude/settings.json`——通过可视化卡片面板，即可创建、切换、监控和同步你的配置，兼具原生性能与精致的暗/亮双主题界面。
 
-![Light mode](https://github.com/user-attachments/assets/bf997cb7-d797-4005-a671-1100291ce1f3)
-*Light theme — profile dashboard*
+![亮色模式](https://github.com/user-attachments/assets/bf997cb7-d797-4005-a671-1100291ce1f3)
+*亮色主题 — 档案仪表盘*
 
-![Dark mode](https://github.com/user-attachments/assets/a64363d9-8296-486a-8dbd-d2a0f4c66afb)
-*Dark theme — instrument-style dashboard*
+![暗色模式](https://github.com/user-attachments/assets/a64363d9-8296-486a-8dbd-d2a0f4c66afb)
+*暗色主题 — 仪器风仪表盘*
 
 ---
 
-## ✨ Highlights
+## ✨ 核心亮点
 
-- **🃏 Profile Card Dashboard** — A two-column grid of profile cards. Hover to reveal actions: switch, sync, settings, copy, rename, delete. Click to select.
-- **🌗 Dark / Light Themes** — One-click toggle that follows your system preference, with the built-in code editor syncing automatically.
-- **⚡ Usage at a Glance** — Quota bars (5h / Weekly) with reset times right on each card. Balance display for DeepSeek accounts.
-- **🖥️ Remote Sync** — Push a profile to any number of hosts over SSH/SFTP with one click. Granular sync scope — choose exactly which config keys to transfer.
-- **🔐 Secure by Default** — Passwords are encrypted at rest with AES-256-GCM.
+- **🃏 卡片网格仪表盘** — 两列响应式档案卡片，悬停显现操作：切换、同步、设置、复制、重命名、删除；点击卡片即选中。
+- **🌗 暗/亮双主题** — 一键切换并跟随系统偏好，内置代码编辑器同步换肤。
+- **⚡ 用量一览** — 卡片直接展示 5h / Weekly 配额进度条与重置时间；DeepSeek 账户余额直观显示。
+- **🖥️ 远程同步** — 一键将档案通过 SSH/SFTP 推送到任意数量的主机；可精细选择同步哪些配置字段。
+- **🔐 安全默认** — 密码使用 AES-256-GCM 静态加密存储。
 
-## 🚀 Installation
+## 🚀 安装
 
-Download the latest release for your platform from [GitHub Releases](https://github.com/dmz2922990/LLM-Switch/releases):
+从 [GitHub Releases](https://github.com/dmz2922990/LLM-Switch/releases) 下载对应平台的最新版本：
 
-| Platform | File |
-|----------|------|
+| 平台 | 文件 |
+|------|------|
 | macOS (Apple Silicon) | `LLM.Switch_*_aarch64.dmg` |
 | macOS (Intel) | `LLM.Switch_*_x64.dmg` |
 | Windows | `LLM.Switch_*_x64-setup.exe` |
 | Linux | `LLM.Switch_*_amd64.AppImage` |
 
-> **macOS notice:** The app is not signed with an Apple Developer certificate, so Gatekeeper may block it. After installing, run:
+> **macOS 注意事项：** 应用未经过 Apple Developer 签名，macOS Gatekeeper 可能会阻止运行。安装后请执行：
 >
 > ```bash
 > xattr -cr /Applications/LLM\ Switch.app
 > ```
 
-## 🧭 Features
+## 🧭 功能详解
 
-### Profile Management
-- **Multiple profiles** — each with its own `~/.claude/settings.json`
-- **Quick switch** — activate any profile as your current Claude Code config
-- **Copy / Rename / Delete** with confirmation dialogs
-- **Drag-free ordering** via the ▲▼ arrows on each card
+### 配置管理
+- **多档案** — 每个档案对应一份独立的 `~/.claude/settings.json`
+- **一键切换** — 激活任一档案作为当前 Claude Code 使用的配置
+- **复制 / 重命名 / 删除** — 均带确认弹窗，操作安全
+- **排序调整** — 卡片右上角 ▲▼ 箭头调整顺序
 
-### Config Editing
-- **Quick settings** — edit Base URL, Auth Token, and model names (Opus / Sonnet / Haiku) without touching JSON
-- **Full JSON editor** — Monaco-based with syntax highlighting, formatting, and validation
-- **Ctrl/Cmd+S** to save, with visual feedback
+### 配置编辑
+- **快速设置** — 无需触碰 JSON，直接修改 Base URL、Auth Token 与模型名（Opus / Sonnet / Haiku）
+- **完整 JSON 编辑器** — 基于 Monaco，支持语法高亮、格式化和校验
+- **Ctrl/Cmd+S 保存** — 带即时视觉反馈
 
-### Usage Monitoring
-- **Claude / Kimi / ZhiPu quotas** — 5h and Weekly usage bars with reset times
-- **DeepSeek balance** — account balance shown directly on the card
-- Auto-refresh every 5 minutes, manual refresh on demand
+### 用量监控
+- **Claude / Kimi / 智谱配额** — 5h 与 Weekly 用量条，含重置时间
+- **DeepSeek 余额** — 卡片直接显示账户余额
+- 每 5 分钟自动刷新，也可手动刷新
 
-### Remote Sync
-- **SSH/SFTP push** to one or multiple hosts at once
-- **Sync scope** — choose which top-level keys to transfer (fields missing on a profile are safely ignored)
-- **Host manager** — store hosts with encrypted credentials, test connections
-- **Sync history** — review past syncs with source/target hash comparison
+### 远程同步
+- **SSH/SFTP 推送** — 同时同步到一台或多台主机
+- **同步范围** — 自定义选择要传输的顶层配置字段（某档案缺失的字段会被安全忽略）
+- **主机管理** — 加密存储主机凭据，支持连接测试
+- **同步历史** — 查看历史同步记录，含源/目标哈希对比
 
-### Global Settings
-- Three tabs: **Hosts**, **Remote Sync**, **About**
-- Check for updates from inside the app
+### 全局设置
+- 三个标签页：**主机管理**、**远程同步**、**关于**
+- 应用内直接检查更新
 
-## 🛠 Tech Stack
+## 🛠 技术栈
 
-| Layer | Technology |
-|-------|-----------|
-| Frontend | React 19, TypeScript, Vite 8 |
-| Backend | Tauri 2 (Rust) |
-| Database | SQLite (sqlx) |
+| 层级 | 技术 |
+|------|------|
+| 前端 | React 19, TypeScript, Vite 8 |
+| 后端 | Tauri 2 (Rust) |
+| 数据库 | SQLite (sqlx) |
 | SSH | ssh2 crate |
-| Encryption | aes-gcm (AES-256-GCM) |
-| Editor | Monaco Editor |
+| 加密 | aes-gcm (AES-256-GCM) |
+| 编辑器 | Monaco Editor |
 
-## 🧑‍💻 Development
+## 🧑‍💻 开发
 
-### Prerequisites
+### 环境要求
 
 - Node.js >= 18
 - Rust >= 1.70
-- Platform-specific dependencies for [Tauri 2](https://tauri.app/start/prerequisites/)
+- [Tauri 2](https://tauri.app/start/prerequisites/) 平台相关依赖
 
-### Commands
+### 常用命令
 
 ```bash
-# Install dependencies
+# 安装依赖
 npm install
 
-# Start dev server
+# 启动开发服务器
 npm run tauri:dev
 
-# Build for production
+# 生产构建
 npm run tauri:build
 ```
 
-## 📄 License
+## 📄 许可证
 
 MIT

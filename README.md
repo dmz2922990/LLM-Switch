@@ -2,22 +2,73 @@
 
 [中文文档](README_CN.md)
 
-A desktop application for managing multiple Claude Code configuration profiles, with remote sync support via SSH/SFTP.
+> **Manage multiple Claude Code profiles in one clean, instrument-style dashboard.**
+> Switch configs, monitor usage, and sync to remote hosts — all in a fast native desktop app.
 
-Built with **Tauri 2** + **React 19** + **Rust**.
+**LLM Switch** is a desktop application for developers who run multiple Claude Code configuration profiles. Instead of editing `~/.claude/settings.json` by hand, you get a visual dashboard to create, switch, monitor, and sync your configs — with native performance and a polished dark/light UI.
 
-## Features
+![Light mode](https://github.com/user-attachments/assets/bf997cb7-d797-4005-a671-1100291ce1f3)
+*Light theme — profile dashboard*
 
-- **Profile Management** — Create, rename, copy, and switch between multiple Claude Code (`~/.claude/settings.json`) configuration profiles
-- **Quick Edit** — One-click editing of Base URL, Auth Token, and model names (Opus/Sonnet/Haiku)
-- **JSON Editor** — Full Monaco editor with syntax highlighting, formatting, and validation
-- **Remote Sync** — Push configuration to remote hosts via SSH/SFTP
-- **Host Manager** — Manage remote hosts with connection testing
-- **AES-256-GCM Encryption** — Passwords are encrypted at rest
-- **Multi-language** — Chinese / English UI with one-click switching
-- **System Tray** — Minimize to tray
+![Dark mode](https://github.com/user-attachments/assets/a64363d9-8296-486a-8dbd-d2a0f4c66afb)
+*Dark theme — instrument-style dashboard*
 
-## Tech Stack
+---
+
+## ✨ Highlights
+
+- **🃏 Profile Card Dashboard** — A two-column grid of profile cards. Hover to reveal actions: switch, sync, settings, copy, rename, delete. Click to select.
+- **🌗 Dark / Light Themes** — One-click toggle that follows your system preference, with the built-in code editor syncing automatically.
+- **⚡ Usage at a Glance** — Quota bars (5h / Weekly) with reset times right on each card. Balance display for DeepSeek accounts.
+- **🖥️ Remote Sync** — Push a profile to any number of hosts over SSH/SFTP with one click. Granular sync scope — choose exactly which config keys to transfer.
+- **🔐 Secure by Default** — Passwords are encrypted at rest with AES-256-GCM.
+
+## 🚀 Installation
+
+Download the latest release for your platform from [GitHub Releases](https://github.com/dmz2922990/LLM-Switch/releases):
+
+| Platform | File |
+|----------|------|
+| macOS (Apple Silicon) | `LLM.Switch_*_aarch64.dmg` |
+| macOS (Intel) | `LLM.Switch_*_x64.dmg` |
+| Windows | `LLM.Switch_*_x64-setup.exe` |
+| Linux | `LLM.Switch_*_amd64.AppImage` |
+
+> **macOS notice:** The app is not signed with an Apple Developer certificate, so Gatekeeper may block it. After installing, run:
+>
+> ```bash
+> xattr -cr /Applications/LLM\ Switch.app
+> ```
+
+## 🧭 Features
+
+### Profile Management
+- **Multiple profiles** — each with its own `~/.claude/settings.json`
+- **Quick switch** — activate any profile as your current Claude Code config
+- **Copy / Rename / Delete** with confirmation dialogs
+- **Drag-free ordering** via the ▲▼ arrows on each card
+
+### Config Editing
+- **Quick settings** — edit Base URL, Auth Token, and model names (Opus / Sonnet / Haiku) without touching JSON
+- **Full JSON editor** — Monaco-based with syntax highlighting, formatting, and validation
+- **Ctrl/Cmd+S** to save, with visual feedback
+
+### Usage Monitoring
+- **Claude / Kimi / ZhiPu quotas** — 5h and Weekly usage bars with reset times
+- **DeepSeek balance** — account balance shown directly on the card
+- Auto-refresh every 5 minutes, manual refresh on demand
+
+### Remote Sync
+- **SSH/SFTP push** to one or multiple hosts at once
+- **Sync scope** — choose which top-level keys to transfer (fields missing on a profile are safely ignored)
+- **Host manager** — store hosts with encrypted credentials, test connections
+- **Sync history** — review past syncs with source/target hash comparison
+
+### Global Settings
+- Three tabs: **Hosts**, **Remote Sync**, **About**
+- Check for updates from inside the app
+
+## 🛠 Tech Stack
 
 | Layer | Technology |
 |-------|-----------|
@@ -28,19 +79,7 @@ Built with **Tauri 2** + **React 19** + **Rust**.
 | Encryption | aes-gcm (AES-256-GCM) |
 | Editor | Monaco Editor |
 
-## Installation
-
-Download the latest release from [GitHub Releases](https://github.com/dmz2922990/LLM-Switch/releases).
-
-### macOS Notice
-
-Since the app is not signed with an Apple Developer certificate, macOS Gatekeeper may block it. Run the following command after installing:
-
-```bash
-xattr -cr /Applications/LLM\ Switch.app
-```
-
-## Getting Started
+## 🧑‍💻 Development
 
 ### Prerequisites
 
@@ -48,7 +87,7 @@ xattr -cr /Applications/LLM\ Switch.app
 - Rust >= 1.70
 - Platform-specific dependencies for [Tauri 2](https://tauri.app/start/prerequisites/)
 
-### Install & Run
+### Commands
 
 ```bash
 # Install dependencies
@@ -61,47 +100,6 @@ npm run tauri:dev
 npm run tauri:build
 ```
 
-## Project Structure
-
-```
-LLM-switch/
-├── src/                          # Frontend (React)
-│   ├── App.tsx                   # Main app with tab routing
-│   ├── api.ts                    # Tauri invoke API wrapper
-│   ├── types.ts                  # TypeScript type definitions
-│   ├── i18n/                     # Internationalization
-│   │   ├── index.ts
-│   │   └── locales/
-│   │       ├── zh-CN.json
-│   │       └── en.json
-│   ├── components/
-│   │   ├── ProfileSidebar.tsx    # Profile list & management
-│   │   ├── SettingsEditor.tsx    # JSON editor with quick settings
-│   │   ├── HostManager.tsx       # Remote host CRUD
-│   │   └── SyncPanel.tsx         # Sync to remote hosts
-│   └── styles/
-│       └── index.css
-├── src-tauri/                    # Backend (Rust)
-│   ├── Cargo.toml
-│   ├── tauri.conf.json
-│   ├── migrations/
-│   │   └── 001_init.sql
-│   └── src/
-│       ├── main.rs
-│       ├── lib.rs
-│       ├── commands/mod.rs        # Tauri commands (17 APIs)
-│       ├── db/mod.rs              # SQLite connection pool
-│       ├── models/                # Data models
-│       ├── services/
-│       │   ├── crypto.rs          # AES-256-GCM encrypt/decrypt
-│       │   ├── profile_service.rs # Profile CRUD
-│       │   ├── host_service.rs    # Host CRUD + password encrypt
-│       │   ├── sync_service.rs    # SSH/SFTP sync
-│       │   └── sync_history_service.rs
-│       └── tray.rs               # System tray
-└── package.json
-```
-
-## License
+## 📄 License
 
 MIT

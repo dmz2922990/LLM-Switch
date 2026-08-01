@@ -53,6 +53,7 @@ jobs:
 
       - name: Generate release body
         id: release_body
+        shell: bash
         run: |
           PREV=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           RANGE="$([ -z "$PREV" ] && echo HEAD || echo ${PREV}..HEAD)"

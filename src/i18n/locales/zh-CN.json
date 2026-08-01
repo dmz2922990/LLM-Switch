@@ -108,7 +108,18 @@
     "decryptFailed": "密码解密失败，密钥可能已变更。请编辑主机重新输入密码。"
   },
   "about": {
-    "description": "Claude Code 多配置文件管理工具"
+    "description": "集中管理 Claude Code 配置，一键远程切换 API Key 与模型——无论是本机还是虚拟机、开发板、远程服务器，让每个开发环境的配置保持同步、始终如一。",
+    "tags": [
+      "Claude Code",
+      "Claude API",
+      "API Key 管理",
+      "配置管理",
+      "SSH",
+      "SFTP",
+      "远程同步",
+      "Tauri",
+      "跨平台"
+    ]
   },
   "tray": {
     "openWindow": "打开主窗口",

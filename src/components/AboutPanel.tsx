@@ -27,6 +27,11 @@ export function AboutPanel({ updateStatus, appVersion, onCheckUpdate, onDownload
       <p className="dialog-sub" style={{ marginBottom: 16, lineHeight: 1.6 }}>
         {t("about.description")}
       </p>
+      <div className="about-tags">
+        {(t("about.tags", { returnObjects: true }) as string[]).map((tag: string) => (
+          <span key={tag} className="about-tag">{tag}</span>
+        ))}
+      </div>
       <a
         href="#"
         onClick={(e) => { e.preventDefault(); invoke("open_github"); }}

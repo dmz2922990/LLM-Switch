@@ -475,6 +475,24 @@ select {
 .about-link:hover {
   text-decoration: underline;
 }
+.about-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: center;
+  margin-bottom: 14px;
+}
+.about-tag {
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono);
+  color: var(--ink-dim);
+  background: var(--rx-soft);
+  border: 1px solid transparent;
+  border-radius: var(--r-pill);
+  padding: 2px 10px;
+  line-height: 1.6;
+  white-space: nowrap;
+}
 
 /* Context menu */
 .ctx-menu {

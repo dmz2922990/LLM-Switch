@@ -108,7 +108,18 @@
     "decryptFailed": "Password decryption failed. The key may have changed. Please edit the host and re-enter the password."
   },
   "about": {
-    "description": "Multi-profile manager for Claude Code"
+    "description": "Centrally manage your Claude Code configs and switch API keys & models remotely in one click — on your machine or in a VM, dev board, or remote server. Keep every dev environment's config in sync and consistent.",
+    "tags": [
+      "Claude Code",
+      "Claude API",
+      "API Key Manager",
+      "Config Manager",
+      "SSH",
+      "SFTP",
+      "Remote Sync",
+      "Tauri",
+      "Cross-platform"
+    ]
   },
   "tray": {
     "openWindow": "Open Main Window",

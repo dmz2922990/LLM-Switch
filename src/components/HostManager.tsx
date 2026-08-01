@@ -158,6 +158,15 @@ export function HostManager({ hosts, onRefresh, embedded }: Props) {
     } catch (e: any) { alert(e.toString()); }
   };
 
+  const handleSetDefault = async (h: Host) => {
+    try {
+      await api.host.setDefault(h.id);
+      onRefresh();
+    } catch (e: any) {
+      alert(e.toString());
+    }
+  };
+
   const startEdit = (h: Host) => {
     setEditing(h);
     setForm({
@@ -180,7 +189,10 @@ export function HostManager({ hosts, onRefresh, embedded }: Props) {
           {hosts.map((h) => (
             <div key={h.id} className="host-card">
               <div className="host-info">
-                <div className="host-name">{h.name}</div>
+                <div className="host-name">
+                  {h.name}
+                  {h.is_default && <span className="default-badge">{t("sync.defaultHost")}</span>}
+                </div>
                 <div className="host-detail">{h.username}@{h.address}:{h.port} → {h.remote_path}</div>
                 {testResult[h.id] && (
                   <div className={`host-test-result ${testResult[h.id] === "success" ? "is-success" : "is-error"}`}>
@@ -193,6 +205,11 @@ export function HostManager({ hosts, onRefresh, embedded }: Props) {
                   {t("common.test")}
                 </button>
                 <button className="btn btn--ghost btn--sm" onClick={() => startEdit(h)}>{t("common.edit")}</button>
+                {!h.is_default && (
+                  <button className="btn btn--ghost btn--sm" onClick={() => handleSetDefault(h)}>
+                    {t("sync.setDefault")}
+                  </button>
+                )}
                 <button className="btn btn--danger btn--sm" onClick={() => setDeletingId(h.id)}>{t("common.delete")}</button>
               </div>
             </div>

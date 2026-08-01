@@ -56,17 +56,21 @@ jobs:
         run: |
           PREV=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
           RANGE="$([ -z "$PREV" ] && echo HEAD || echo ${PREV}..HEAD)"
+          # clean: strip "[type:...]" prefix, cut verbose tail after " - ", dedupe
+          clean() {
+            sed -E 's/^\[(func_add|func_update|bug_fix):[^]]*\] ?//' \
+              | sed -E 's/ - .*$//' \
+              | sort -u
+          }
+          FEAT=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^\[func_add"    | clean | sed 's/^/- /' || true)
+          UPDT=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^\[func_update" | clean | sed 's/^/- /' || true)
+          FIXS=$(git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^\[bug_fix"    | clean | sed 's/^/- /' || true)
           {
             echo "## 🎉 What's Changed"
             echo ""
-            echo "### ✨ Features"
-            git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^\[func_add" | sed -E 's/\[func_add:[^]]*\] ?//' | sed 's/^/- /' || true
-            echo ""
-            echo "### 🔧 Updates"
-            git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^\[func_update" | sed -E 's/\[func_update:[^]]*\] ?//' | sed 's/^/- /' || true
-            echo ""
-            echo "### 🐛 Bug Fixes"
-            git log $RANGE --pretty=format:"%s" --no-merges | grep -E "^\[bug_fix" | sed -E 's/\[bug_fix:[^]]*\] ?//' | sed 's/^/- /' || true
+            [ -n "$FEAT" ] && { echo "### ✨ New Features"; echo "$FEAT"; echo ""; }
+            [ -n "$UPDT" ] && { echo "### 🔧 Improvements"; echo "$UPDT"; echo ""; }
+            [ -n "$FIXS" ] && { echo "### 🐛 Bug Fixes"; echo "$FIXS"; echo ""; }
           } > release_body.txt
           DELIM="GHABODY"
           echo "body<<$DELIM" >> "$GITHUB_OUTPUT"

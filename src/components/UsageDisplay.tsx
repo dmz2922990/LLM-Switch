@@ -2,6 +2,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import type { Profile, UsageInfo } from "../types";
 import { api } from "../api";
+import { IconRefresh } from "./icons";
 
 const REFRESH_INTERVAL = 5 * 60 * 1000;
 
@@ -14,10 +15,10 @@ function parseEnv(json: string): Record<string, string> {
   }
 }
 
-function getBarColor(pct: number): string {
-  if (pct >= 90) return "var(--danger)";
-  if (pct >= 70) return "var(--warning)";
-  return "var(--success)";
+function getBarClass(pct: number): string {
+  if (pct >= 90) return "is-danger";
+  if (pct >= 70) return "is-warn";
+  return "is-ok";
 }
 
 function formatResetTime(ms: number): string {
@@ -80,36 +81,46 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
           }}
           onMouseLeave={() => setHovered(null)}
         >
-          <span className="profile-usage-label">{q.label}</span>
-          <div className="profile-usage-bar">
-            <div
-              className="profile-usage-bar-fill"
-              style={{
-                width: `${Math.min(q.percentage, 100)}%`,
-                background: getBarColor(q.percentage),
-              }}
-            />
-          </div>
-          <span className="profile-usage-pct">{q.percentage.toFixed(0)}%</span>
+          {q.label === "Balance" ? (
+            <div className="profile-usage-balance">
+              <span className="profile-usage-label">{t("usage.balance")}</span>
+              <span className="profile-usage-balance-amt">{q.remaining ?? "-"}</span>
+            </div>
+          ) : (
+            <>
+              <span className="profile-usage-label">{q.label}</span>
+              <div className="profile-usage-row">
+                <div className="profile-usage-bar">
+                  <div
+                    className={`profile-usage-bar-fill ${getBarClass(q.percentage)}`}
+                    style={{ width: `${Math.min(q.percentage, 100)}%` }}
+                  />
+                </div>
+                <span className="profile-usage-pct">{q.percentage.toFixed(0)}%</span>
+              </div>
+              {q.next_reset_time ? (
+                <span className="profile-usage-reset">
+                  {t("usage.resetAt")} {formatResetTime(q.next_reset_time)}
+                </span>
+              ) : null}
+            </>
+          )}
         </div>
       ))}
       <button
-        className="profile-usage-refresh"
+        className={`profile-usage-refresh${loading ? " is-loading" : ""}`}
         onClick={(e) => { e.stopPropagation(); fetchUsage(); }}
         disabled={loading}
+        title={t("usage.refresh")}
       >
-        {loading ? "..." : "↻"}
+        <IconRefresh size={11} />
       </button>
       {hovered && (() => {
         const q = usage.quotas.find(q => q.label === hovered.label);
-        if (!q) return null;
-        const text = [
-          q.remaining && `${t("usage.remaining")}: ${q.remaining}`,
-          q.next_reset_time ? `${t("usage.resetAt")}: ${formatResetTime(q.next_reset_time)}` : "",
-        ].filter(Boolean).join(" · ");
+        if (!q || !q.remaining) return null;
         return (
-          <div className="profile-usage-tooltip" style={{ top: hovered.top, left: hovered.left, transform: "translateY(-100%)" }}>
-            {text}
+          <div className="profile-usage-tooltip" style={{ top: hovered.top, left: hovered.left }}>
+            {t("usage.remaining")}: {q.remaining}
           </div>
         );
       })()}

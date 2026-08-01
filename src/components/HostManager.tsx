@@ -2,10 +2,13 @@ import { useState, type Dispatch, type SetStateAction } from "react";
 import { useTranslation } from "react-i18next";
 import type { Host } from "../types";
 import { api } from "../api";
+import { Dialog } from "./Dialog";
+import { ConfirmDialog } from "./ConfirmDialog";
 
 interface Props {
   hosts: Host[];
   onRefresh: () => void;
+  embedded?: boolean;
 }
 
 type FormData = {
@@ -19,26 +22,6 @@ type FormData = {
   remote_path: string;
 };
 
-function ConfirmDialog({ message, onConfirm, onCancel }: {
-  message: string;
-  onConfirm: () => void;
-  onCancel: () => void;
-}) {
-  const { t } = useTranslation();
-  return (
-    <div className="dialog-overlay" onClick={onCancel}>
-      <div className="dialog" onClick={(e) => e.stopPropagation()}>
-        <h3>{t("host.confirmAction")}</h3>
-        <p style={{ fontSize: 14, lineHeight: 1.6 }}>{message}</p>
-        <div className="dialog-actions">
-          <button className="btn-secondary" onClick={onCancel}>{t("common.cancel")}</button>
-          <button className="btn-danger" onClick={onConfirm}>{t("common.confirm")}</button>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function HostForm({ editing, form, setForm, onSave, onCancel }: {
   editing: Host | null;
   form: FormData;
@@ -48,59 +31,61 @@ function HostForm({ editing, form, setForm, onSave, onCancel }: {
 }) {
   const { t } = useTranslation();
   return (
-    <div className="dialog-overlay" onClick={onCancel}>
-      <div className="dialog" onClick={(e) => e.stopPropagation()}>
-        <h3>{editing ? t("host.editHost") : t("host.addHost")}</h3>
-        <div className="form-group">
-          <label>{t("host.name")}</label>
-          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+    <Dialog
+      title={editing ? t("host.editHost") : t("host.addHost")}
+      onClose={onCancel}
+      actions={
+        <>
+          <button className="btn btn--ghost" onClick={onCancel}>{t("common.cancel")}</button>
+          <button className="btn btn--primary" onClick={onSave}>{editing ? t("common.save") : t("host.addHost")}</button>
+        </>
+      }
+    >
+      <div className="form-group">
+        <label>{t("host.name")}</label>
+        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+      </div>
+      <div className="form-row">
+        <div className="form-group" style={{ flex: 3 }}>
+          <label>{t("host.address")}</label>
+          <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
         </div>
-        <div style={{ display: "flex", gap: 8 }}>
-          <div className="form-group" style={{ flex: 3 }}>
-            <label>{t("host.address")}</label>
-            <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
-          </div>
-          <div className="form-group" style={{ flex: 1 }}>
-            <label>{t("host.port")}</label>
-            <input type="number" value={form.port} onChange={(e) => setForm({ ...form, port: Number(e.target.value) })} />
-          </div>
-        </div>
-        <div className="form-group">
-          <label>{t("host.username")}</label>
-          <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
-        </div>
-        <div className="form-group">
-          <label>{t("host.authType")}</label>
-          <select value={form.auth_type} onChange={(e) => setForm({ ...form, auth_type: e.target.value as "password" | "key" })}>
-            <option value="password">{t("host.password")}</option>
-            <option value="key">{t("host.sshKey")}</option>
-          </select>
-        </div>
-        {form.auth_type === "password" ? (
-          <div className="form-group">
-            <label>{t("host.password")}</label>
-            <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-          </div>
-        ) : (
-          <div className="form-group">
-            <label>{t("host.keyPath")}</label>
-            <input value={form.key_path} onChange={(e) => setForm({ ...form, key_path: e.target.value })} placeholder="~/.ssh/id_rsa" />
-          </div>
-        )}
-        <div className="form-group">
-          <label>{t("host.remotePath")}</label>
-          <input value={form.remote_path} onChange={(e) => setForm({ ...form, remote_path: e.target.value })} />
-        </div>
-        <div className="dialog-actions">
-          <button className="btn-secondary" onClick={onCancel}>{t("common.cancel")}</button>
-          <button className="btn-primary" onClick={onSave}>{editing ? t("common.save") : t("host.addHost")}</button>
+        <div className="form-group" style={{ flex: 1 }}>
+          <label>{t("host.port")}</label>
+          <input type="number" value={form.port} onChange={(e) => setForm({ ...form, port: Number(e.target.value) })} />
         </div>
       </div>
-    </div>
+      <div className="form-group">
+        <label>{t("host.username")}</label>
+        <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+      </div>
+      <div className="form-group">
+        <label>{t("host.authType")}</label>
+        <select value={form.auth_type} onChange={(e) => setForm({ ...form, auth_type: e.target.value as "password" | "key" })}>
+          <option value="password">{t("host.password")}</option>
+          <option value="key">{t("host.sshKey")}</option>
+        </select>
+      </div>
+      {form.auth_type === "password" ? (
+        <div className="form-group">
+          <label>{t("host.password")}</label>
+          <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+        </div>
+      ) : (
+        <div className="form-group">
+          <label>{t("host.keyPath")}</label>
+          <input value={form.key_path} onChange={(e) => setForm({ ...form, key_path: e.target.value })} placeholder="~/.ssh/id_rsa" />
+        </div>
+      )}
+      <div className="form-group">
+        <label>{t("host.remotePath")}</label>
+        <input value={form.remote_path} onChange={(e) => setForm({ ...form, remote_path: e.target.value })} />
+      </div>
+    </Dialog>
   );
 }
 
-export function HostManager({ hosts, onRefresh }: Props) {
+export function HostManager({ hosts, onRefresh, embedded }: Props) {
   const { t } = useTranslation();
   const [showAdd, setShowAdd] = useState(false);
   const [editing, setEditing] = useState<Host | null>(null);
@@ -184,9 +169,9 @@ export function HostManager({ hosts, onRefresh }: Props) {
 
   return (
     <div className="scroll-area">
-      <div style={{ padding: "16px 24px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-        <h2 style={{ fontSize: 16, fontWeight: 600 }}>{t("host.title")}</h2>
-        <button className="btn-primary btn-sm" onClick={() => { resetForm(); setShowAdd(true); }}>+ {t("host.addHost")}</button>
+      <div className="panel-header">
+        {!embedded && <h2 className="panel-title">{t("host.title")}</h2>}
+        <button className="btn btn--primary btn--sm" style={{ marginLeft: "auto" }} onClick={() => { resetForm(); setShowAdd(true); }}>{t("host.addHost")}</button>
       </div>
       {hosts.length === 0 ? (
         <div className="empty-state"><p>{t("host.noHosts")}</p></div>
@@ -198,17 +183,17 @@ export function HostManager({ hosts, onRefresh }: Props) {
                 <div className="host-name">{h.name}</div>
                 <div className="host-detail">{h.username}@{h.address}:{h.port} → {h.remote_path}</div>
                 {testResult[h.id] && (
-                  <div style={{ fontSize: 12, marginTop: 4, color: testResult[h.id] === "success" ? "var(--success)" : "var(--danger)" }}>
+                  <div className={`host-test-result ${testResult[h.id] === "success" ? "is-success" : "is-error"}`}>
                     {testResult[h.id] === "success" ? t("host.connected") : testResult[h.id]}
                   </div>
                 )}
               </div>
               <div className="host-actions">
-                <button className="btn-secondary btn-sm" onClick={() => handleTest(h)} disabled={testing === h.id}>
+                <button className="btn btn--ghost btn--sm" onClick={() => handleTest(h)} disabled={testing === h.id}>
                   {t("common.test")}
                 </button>
-                <button className="btn-secondary btn-sm" onClick={() => startEdit(h)}>{t("common.edit")}</button>
-                <button className="btn-danger btn-sm" onClick={() => setDeletingId(h.id)}>{t("common.delete")}</button>
+                <button className="btn btn--ghost btn--sm" onClick={() => startEdit(h)}>{t("common.edit")}</button>
+                <button className="btn btn--danger btn--sm" onClick={() => setDeletingId(h.id)}>{t("common.delete")}</button>
               </div>
             </div>
           ))}
@@ -216,7 +201,14 @@ export function HostManager({ hosts, onRefresh }: Props) {
       )}
       {showAdd && <HostForm editing={null} form={form} setForm={setForm} onSave={handleAdd} onCancel={() => { setShowAdd(false); resetForm(); }} />}
       {editing && <HostForm editing={editing} form={form} setForm={setForm} onSave={handleEdit} onCancel={() => { setEditing(null); resetForm(); }} />}
-      {deletingId && <ConfirmDialog message={t("host.confirmDelete")} onConfirm={() => handleDelete(deletingId)} onCancel={() => setDeletingId(null)} />}
+      {deletingId && (
+        <ConfirmDialog
+          variant="danger"
+          message={t("host.confirmDelete")}
+          onConfirm={() => handleDelete(deletingId)}
+          onCancel={() => setDeletingId(null)}
+        />
+      )}
     </div>
   );
 }

@@ -18,6 +18,7 @@ const PROVIDERS: &[(&str, &str)] = &[
     ("bigmodel.cn", "ZhiPu"),
     ("kimi.com", "Kimi"),
     ("moonshot.cn", "Kimi"),
+    ("deepseek.com", "DeepSeek"),
 ];
 
 fn match_provider(url: &str) -> Option<(&'static str, &'static str)> {
@@ -168,6 +169,54 @@ async fn fetch_kimi_usage(token: &str) -> Result<UsageInfo, ProviderError> {
     })
 }
 
+// --- DeepSeek fetch (account balance) ---
+
+async fn fetch_deepseek_usage(token: &str) -> Result<UsageInfo, ProviderError> {
+    let client = Client::builder()
+        .timeout(Duration::from_secs(5))
+        .build()
+        .map_err(|e| ProviderError(e.to_string()))?;
+
+    let resp: Value = client
+        .get("https://api.deepseek.com/user/balance")
+        .header("Authorization", format!("Bearer {}", token))
+        .send()
+        .await
+        .map_err(|e| ProviderError(format!("request failed: {}", e)))?
+        .json()
+        .await
+        .map_err(|e| ProviderError(format!("decode failed: {}", e)))?;
+
+    // Prefer USD, fall back to the first entry.
+    let balances = resp
+        .get("balance_infos")
+        .and_then(|v| v.as_array())
+        .cloned()
+        .unwrap_or_default();
+
+    let mut quotas = Vec::new();
+    let preferred = balances
+        .iter()
+        .find(|b| b.get("currency").and_then(|c| c.as_str()) == Some("USD"))
+        .or_else(|| balances.first());
+
+    if let Some(b) = preferred {
+        let currency = b.get("currency").and_then(|c| c.as_str()).unwrap_or("");
+        let total = b.get("total_balance").and_then(|v| v.as_str()).unwrap_or("0");
+        quotas.push(QuotaInfo {
+            label: "Balance".to_string(),
+            percentage: 0.0,
+            next_reset_time: 0,
+            remaining: Some(format!("{}{}", total, currency)),
+        });
+    }
+
+    Ok(UsageInfo {
+        provider_name: "DeepSeek".to_string(),
+        quotas,
+    })
+}
+
 // --- Public API ---
 
 pub async fn get_usage(base_url: &str, auth_token: &str) -> Result<Option<UsageInfo>, ProviderError> {
@@ -179,6 +228,7 @@ pub async fn get_usage(base_url: &str, auth_token: &str) -> Result<Option<UsageI
     let usage = match matched.0 {
         "bigmodel.cn" => fetch_zhipu_usage(auth_token).await?,
         "kimi.com" | "moonshot.cn" => fetch_kimi_usage(auth_token).await?,
+        "deepseek.com" => fetch_deepseek_usage(auth_token).await?,
         _ => return Ok(None),
     };
 

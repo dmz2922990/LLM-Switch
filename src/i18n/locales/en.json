@@ -10,7 +10,24 @@
     "test": "Test",
     "success": "Success",
     "failed": "Failed",
-    "loading": "Loading..."
+    "loading": "Loading...",
+    "themeToggle": "Toggle theme",
+    "settings": "Settings",
+    "sync": "Sync"
+  },
+  "globalSettings": {
+    "title": "Global Settings",
+    "tabs": {
+      "hosts": "Hosts",
+      "sync": "Sync",
+      "about": "About"
+    }
+  },
+  "syncHost": {
+    "title": "Select Sync Host",
+    "desc": "No default host set. Choose a target:",
+    "syncedTo": "Synced to {{host}}",
+    "noHosts": "Add a remote host in Global Settings first"
   },
   "tabs": {
     "editor": "Config Editor",
@@ -25,10 +42,11 @@
     "noProfiles": "No profiles created yet",
     "active": "Active",
     "switch": "Switch",
-    "confirmDelete": "Delete this profile?",
+    "confirmDelete": "Delete profile \"{{name}}\"?",
     "confirmCopy": "Copy this profile?",
     "confirmAction": "Confirm Action",
-    "language": "Language"
+    "language": "Language",
+    "sort": "Reorder"
   },
   "editor": {
     "invalidJson": "Invalid JSON format, please check syntax",
@@ -36,7 +54,16 @@
     "format": "Format",
     "unsaved": "Unsaved changes",
     "saved": "Saved",
-    "activeHint": "Active profile — takes effect after saving"
+    "activeHint": "Active profile — takes effect after saving",
+    "quickBaseUrl": "Base URL",
+    "quickAuthToken": "Auth Token",
+    "quickModel": "Model",
+    "quickHaikuModel": "Haiku Model",
+    "quickSonnetModel": "Sonnet Model",
+    "quickOpusModel": "Opus Model",
+    "contextCopy": "Copy",
+    "contextCut": "Cut",
+    "contextSelectAll": "Select All"
   },
   "sync": {
     "title": "Remote Sync",
@@ -108,6 +135,7 @@
     "refresh": "Refresh Usage",
     "nextRefresh": "Next refresh",
     "resetAt": "Resets at",
-    "remaining": "Remaining"
+    "remaining": "Remaining",
+    "balance": "Balance"
   }
 }

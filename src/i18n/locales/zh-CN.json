@@ -10,7 +10,24 @@
     "test": "测试",
     "success": "成功",
     "failed": "失败",
-    "loading": "加载中..."
+    "loading": "加载中...",
+    "themeToggle": "切换主题",
+    "settings": "设置",
+    "sync": "同步"
+  },
+  "globalSettings": {
+    "title": "全局设置",
+    "tabs": {
+      "hosts": "主机管理",
+      "sync": "远程同步",
+      "about": "关于"
+    }
+  },
+  "syncHost": {
+    "title": "选择同步主机",
+    "desc": "未设置默认主机，请选择同步目标：",
+    "syncedTo": "已同步到 {{host}}",
+    "noHosts": "请先在全局设置中添加远程主机"
   },
   "tabs": {
     "editor": "配置编辑",
@@ -25,10 +42,11 @@
     "noProfiles": "尚未创建配置档案",
     "active": "活跃",
     "switch": "切换",
-    "confirmDelete": "确认删除此档案？",
+    "confirmDelete": "确认删除档案「{{name}}」？",
     "confirmCopy": "确认复制此档案？",
     "confirmAction": "确认操作",
-    "language": "语言"
+    "language": "语言",
+    "sort": "调整顺序"
   },
   "editor": {
     "invalidJson": "JSON 格式无效，请检查语法",
@@ -36,7 +54,16 @@
     "format": "格式化",
     "unsaved": "未保存的修改",
     "saved": "已保存",
-    "activeHint": "活跃档案 — 保存后自动生效"
+    "activeHint": "活跃档案 — 保存后自动生效",
+    "quickBaseUrl": "Base URL",
+    "quickAuthToken": "Auth Token",
+    "quickModel": "Model",
+    "quickHaikuModel": "Haiku Model",
+    "quickSonnetModel": "Sonnet Model",
+    "quickOpusModel": "Opus Model",
+    "contextCopy": "复制",
+    "contextCut": "剪切",
+    "contextSelectAll": "全选"
   },
   "sync": {
     "title": "远程同步",
@@ -108,6 +135,7 @@
     "refresh": "刷新用量",
     "nextRefresh": "下次刷新",
     "resetAt": "重置于",
-    "remaining": "剩余"
+    "remaining": "剩余",
+    "balance": "余额"
   }
 }

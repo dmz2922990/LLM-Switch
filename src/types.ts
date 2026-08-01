@@ -53,5 +53,3 @@ export interface UsageInfo {
   provider_name: string;
   quotas: QuotaInfo[];
 }
-
-export type TabId = "editor" | "sync" | "hosts";

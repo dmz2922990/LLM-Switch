@@ -1,47 +1,53 @@
-import logoUrl from "./img/transparent-logo.png";
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { useTranslation } from "react-i18next";
 import { invoke } from "@tauri-apps/api/core";
 import { getVersion } from "@tauri-apps/api/app";
 import { listen } from "@tauri-apps/api/event";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
-import type { Profile, Host, TabId } from "./types";
+import type { Profile, Host } from "./types";
 import { api } from "./api";
 import i18n from "./i18n";
-import { ProfileSidebar } from "./components/ProfileSidebar";
-import { SettingsEditor } from "./components/SettingsEditor";
-import { HostManager } from "./components/HostManager";
-import { SyncPanel } from "./components/SyncPanel";
+import { TopBar } from "./components/TopBar";
+import { ProfileGrid } from "./components/ProfileGrid";
+import { ProfileSettingsDialog } from "./components/ProfileSettingsDialog";
+import { SyncHostDialog } from "./components/SyncHostDialog";
+import { GlobalSettingsDialog } from "./components/GlobalSettingsDialog";
+import { NewProfileDialog } from "./components/NewProfileDialog";
+import { ConfirmDialog } from "./components/ConfirmDialog";
+import { IconPlus } from "./components/icons";
+import type { UpdateStatus } from "./components/AboutPanel";
 
-type UpdateStatus =
-  | { state: "idle" }
-  | { state: "checking" }
-  | { state: "upToDate" }
-  | { state: "available"; version: string }
-  | { state: "downloading"; percent: number }
-  | { state: "downloadComplete" }
-  | { state: "failed"; message: string };
+type GlobalTab = "hosts" | "sync" | "about";
 
 function App() {
   const { t } = useTranslation();
   const [profiles, setProfiles] = useState<Profile[]>([]);
   const [hosts, setHosts] = useState<Host[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<TabId>("editor");
   const [loading, setLoading] = useState(true);
-  const [showAbout, setShowAbout] = useState(false);
+  const [globalDialog, setGlobalDialog] = useState<{ open: boolean; tab: GlobalTab }>({ open: false, tab: "hosts" });
+  const [settingsProfileId, setSettingsProfileId] = useState<string | null>(null);
+  const [syncProfileId, setSyncProfileId] = useState<string | null>(null);
+  const [newOpen, setNewOpen] = useState(false);
+  const [syncingProfileId, setSyncingProfileId] = useState<string | null>(null);
+  const [syncToast, setSyncToast] = useState<{ kind: "ok" | "err"; msg: string } | null>(null);
+  const toastTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [updateStatus, setUpdateStatus] = useState<UpdateStatus>({ state: "idle" });
   const [appVersion, setAppVersion] = useState("");
   const [startupUpdate, setStartupUpdate] = useState<Update | null>(null);
   const [showStartupUpdateDialog, setShowStartupUpdateDialog] = useState(false);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [copyingId, setCopyingId] = useState<string | null>(null);
 
   const refresh = useCallback(async () => {
     try {
       const [p, h] = await Promise.all([api.profile.list(), api.host.list()]);
       setProfiles(p);
       setHosts(h);
-      if (!selectedProfileId && p.length > 0) {
+      if (selectedProfileId && !p.some((pr) => pr.id === selectedProfileId)) {
+        setSelectedProfileId(p.find((pr) => pr.is_active)?.id ?? p[0]?.id ?? null);
+      } else if (!selectedProfileId && p.length > 0) {
         setSelectedProfileId(p.find((pr) => pr.is_active)?.id ?? p[0].id);
       }
       invoke("refresh_tray_menu").catch(() => {});
@@ -57,6 +63,18 @@ function App() {
     getVersion().then(setAppVersion);
   }, [refresh]);
 
+  useEffect(() => {
+    return () => {
+      if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    };
+  }, []);
+
+  const showToast = useCallback((kind: "ok" | "err", msg: string) => {
+    setSyncToast({ kind, msg });
+    if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
+    toastTimerRef.current = setTimeout(() => setSyncToast(null), 3000);
+  }, []);
+
   const syncTrayLabels = useCallback(() => {
     invoke("update_tray_labels", {
       openWindow: i18n.t("tray.openWindow"),
@@ -70,7 +88,7 @@ function App() {
   }, [syncTrayLabels]);
 
   useEffect(() => {
-    const unlistenAbout = listen("show-about", () => setShowAbout(true));
+    const unlistenAbout = listen("show-about", () => setGlobalDialog({ open: true, tab: "about" }));
     const unlistenSwitched = listen("profile-switched", () => refresh());
     const unlistenFileChanged = listen("settings-file-changed", () => refresh());
     return () => {
@@ -79,10 +97,6 @@ function App() {
       unlistenFileChanged.then((fn) => fn());
     };
   }, [refresh]);
-
-  useEffect(() => {
-    // Startup update check disabled to avoid blocking the UI
-  }, []);
 
   const handleCheckUpdate = useCallback(async () => {
     setUpdateStatus({ state: "checking" });
@@ -102,7 +116,6 @@ function App() {
     try {
       const update = await check();
       if (!update) return;
-
       let downloaded = 0;
       let contentLength = 0;
       await update.downloadAndInstall((event) => {
@@ -173,150 +186,176 @@ function App() {
     setStartupUpdate(null);
   }, []);
 
-  const selectedProfile = profiles.find((p) => p.id === selectedProfileId) ?? null;
+  const handleSwitchActive = useCallback(async (id: string) => {
+    try {
+      await api.profile.setActive(id);
+      setSelectedProfileId(id);
+      refresh();
+    } catch (e: any) {
+      alert(e.toString());
+    }
+  }, [refresh]);
+
+  const doSync = useCallback(async (profileId: string, hostIds: string[]) => {
+    setSyncingProfileId(profileId);
+    try {
+      const res = await api.sync.toHosts(profileId, hostIds);
+      const r = res[0];
+      if (r?.success) {
+        const host = hosts.find((h) => h.id === r.host_id);
+        showToast("ok", t("syncHost.syncedTo", { host: host?.name ?? r.host_id }));
+      } else {
+        showToast("err", r?.error_message ?? t("common.failed"));
+      }
+      refresh();
+    } catch (e: any) {
+      showToast("err", e.toString());
+    } finally {
+      setSyncingProfileId(null);
+    }
+  }, [hosts, refresh, showToast, t]);
+
+  const handleCardSync = useCallback((profile: Profile) => {
+    if (hosts.length === 0) {
+      showToast("err", t("syncHost.noHosts"));
+      return;
+    }
+    const def = hosts.find((h) => h.is_default);
+    if (def) {
+      doSync(profile.id, [def.id]);
+    } else {
+      setSyncProfileId(profile.id);
+    }
+  }, [hosts, doSync, showToast, t]);
+
+  const handleCopy = useCallback(async (id: string) => {
+    try {
+      await api.profile.copy(id);
+      setCopyingId(null);
+      refresh();
+    } catch (err: any) {
+      alert(err.toString());
+    }
+  }, [refresh]);
+
+  const handleDelete = useCallback(async (id: string) => {
+    try {
+      await api.profile.delete(id);
+      setDeletingId(null);
+      refresh();
+    } catch (err: any) {
+      alert(err.toString());
+    }
+  }, [refresh]);
+
+  const handleReorder = useCallback(async (orderedIds: string[]) => {
+    try {
+      await api.profile.reorder(orderedIds);
+      refresh();
+    } catch (err: any) {
+      alert(err.toString());
+    }
+  }, [refresh]);
+
+  const settingsProfile = profiles.find((p) => p.id === settingsProfileId) ?? null;
+  const syncProfile = profiles.find((p) => p.id === syncProfileId) ?? null;
 
   if (loading) {
     return <div className="empty-state"><p>{t("common.loading")}</p></div>;
   }
 
   return (
-    <>
-      <ProfileSidebar
-        profiles={profiles}
-        selectedId={selectedProfileId}
-        onSelect={setSelectedProfileId}
-        onRefresh={refresh}
-        onSwitchActive={setSelectedProfileId}
-      />
-      <div className="main-content">
-        <div className="main-header">
-          <h1>LLM Switch</h1>
-          <img src={logoUrl} alt="" style={{ width: 44, height: 44 }} />
-        </div>
-        <div className="tabs">
-          <button className={`tab ${activeTab === "editor" ? "active" : ""}`} onClick={() => setActiveTab("editor")}>
-            {t("tabs.editor")}
-          </button>
-          <button className={`tab ${activeTab === "sync" ? "active" : ""}`} onClick={() => setActiveTab("sync")}>
-            {t("tabs.sync")}
-          </button>
-          <button className={`tab ${activeTab === "hosts" ? "active" : ""}`} onClick={() => setActiveTab("hosts")}>
-            {t("tabs.hosts")}
-          </button>
-        </div>
-        <div className="main-body">
-          {activeTab === "editor" && (
-            selectedProfile ? (
-              <SettingsEditor profile={selectedProfile} onSaved={refresh} />
-            ) : (
-              <div className="empty-state">
-                <p>{t("sidebar.noProfiles")}</p>
-              </div>
-            )
-          )}
-          {activeTab === "sync" && (
-            <SyncPanel profiles={profiles} hosts={hosts} onRefresh={refresh} />
-          )}
-          {activeTab === "hosts" && (
-            <HostManager hosts={hosts} onRefresh={refresh} />
-          )}
-        </div>
-      </div>
+    <div className="app">
+      <TopBar onOpenGlobalSettings={() => setGlobalDialog({ open: true, tab: "hosts" })} />
 
-      {/* About dialog */}
-      {showAbout && (
-        <div className="dialog-overlay" onClick={() => { setShowAbout(false); setUpdateStatus({ state: "idle" }); }}>
-          <div className="dialog" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center", minWidth: 340 }}>
-            <h3 style={{ marginBottom: 8, fontSize: 20 }}>LLM Switch</h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 12 }}>{appVersion ? `v${appVersion}` : ""}</p>
-            <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 16, lineHeight: 1.6 }}>
-              {t("about.description")}
-            </p>
-            <a
-              href="#"
-              onClick={(e) => { e.preventDefault(); invoke("open_github"); }}
-              style={{ color: "var(--accent)", fontSize: 13, textDecoration: "none" }}
-            >
-              https://github.com/dmz2922990/LLM-Switch
-            </a>
+      <main className="dashboard">
+        <ProfileGrid
+          profiles={profiles}
+          selectedId={selectedProfileId}
+          onSelect={setSelectedProfileId}
+          onSwitchActive={handleSwitchActive}
+          onOpenSettings={(p) => setSettingsProfileId(p.id)}
+          onSync={handleCardSync}
+          onCopy={(id) => setCopyingId(id)}
+          onDelete={(id) => setDeletingId(id)}
+          onReorder={handleReorder}
+          syncingId={syncingProfileId}
+        />
+      </main>
 
-            {/* Update section */}
-            <div style={{ marginTop: 16, borderTop: "1px solid var(--border)", paddingTop: 12 }}>
-              {updateStatus.state === "idle" && (
-                <button className="btn-secondary btn-sm" onClick={handleCheckUpdate}>
-                  {t("updater.checkUpdate")}
-                </button>
-              )}
-              {updateStatus.state === "checking" && (
-                <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>{t("updater.checking")}</p>
-              )}
-              {updateStatus.state === "upToDate" && (
-                <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>{t("updater.upToDate")}</p>
-              )}
-              {updateStatus.state === "available" && (
-                <div>
-                  <p style={{ fontSize: 13, marginBottom: 8 }}>{t("updater.newVersion", { version: updateStatus.version })}</p>
-                  <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-                    <button className="btn-primary btn-sm" onClick={handleDownloadAndInstall}>
-                      {t("updater.downloadAndRestart")}
-                    </button>
-                    <button className="btn-secondary btn-sm" onClick={handleGoToDownload}>
-                      {t("updater.goToDownload")}
-                    </button>
-                  </div>
-                </div>
-              )}
-              {updateStatus.state === "downloading" && (
-                <div>
-                  <div style={{ background: "var(--border)", borderRadius: 4, height: 6, marginBottom: 6, overflow: "hidden" }}>
-                    <div style={{ background: "var(--accent)", height: "100%", width: `${updateStatus.percent}%`, transition: "width 0.2s" }} />
-                  </div>
-                  <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>{t("updater.downloading", { percent: updateStatus.percent })}</p>
-                </div>
-              )}
-              {updateStatus.state === "downloadComplete" && (
-                <p style={{ color: "var(--text-secondary)", fontSize: 13 }}>{t("updater.downloadComplete")}</p>
-              )}
-              {updateStatus.state === "failed" && (
-                <p style={{ color: "var(--danger)", fontSize: 13 }}>{updateStatus.message}</p>
-              )}
-            </div>
+      <button className="fab" onClick={() => setNewOpen(true)} title={t("sidebar.newProfile")}>
+        <IconPlus size={22} />
+      </button>
 
-            <div className="dialog-actions" style={{ justifyContent: "center" }}>
-              <button className="btn-primary btn-sm" onClick={() => { setShowAbout(false); setUpdateStatus({ state: "idle" }); }}>{t("common.confirm")}</button>
-            </div>
-          </div>
-        </div>
+      {settingsProfile && (
+        <ProfileSettingsDialog profile={settingsProfile} onClose={() => setSettingsProfileId(null)} onSaved={refresh} />
+      )}
+      {syncProfile && (
+        <SyncHostDialog
+          profile={syncProfile}
+          hosts={hosts}
+          onClose={() => setSyncProfileId(null)}
+          onSynced={(hostId) => { doSync(syncProfile.id, [hostId]); setSyncProfileId(null); }}
+        />
+      )}
+      {globalDialog.open && (
+        <GlobalSettingsDialog
+          tab={globalDialog.tab}
+          hosts={hosts}
+          profiles={profiles}
+          onRefreshHosts={refresh}
+          onClose={() => setGlobalDialog({ open: false, tab: "hosts" })}
+          updateStatus={updateStatus}
+          appVersion={appVersion}
+          onCheckUpdate={handleCheckUpdate}
+          onDownloadInstall={handleDownloadAndInstall}
+          onGoToDownload={handleGoToDownload}
+        />
+      )}
+      {newOpen && (
+        <NewProfileDialog onClose={() => setNewOpen(false)} onCreated={refresh} />
       )}
 
-      {/* Startup update notification dialog */}
+      {deletingId && (
+        <ConfirmDialog
+          message={t("sidebar.confirmDelete", { name: profiles.find((p) => p.id === deletingId)?.name ?? "" })}
+          onConfirm={() => handleDelete(deletingId)}
+          onCancel={() => setDeletingId(null)}
+        />
+      )}
+      {copyingId && (
+        <ConfirmDialog
+          message={t("sidebar.confirmCopy")}
+          onConfirm={() => handleCopy(copyingId)}
+          onCancel={() => setCopyingId(null)}
+        />
+      )}
+
+      {syncToast && (
+        <div className={`app-toast app-toast--${syncToast.kind}`}>{syncToast.msg}</div>
+      )}
+
       {showStartupUpdateDialog && startupUpdate && (
         <div className="dialog-overlay" onClick={handleDismissStartupUpdate}>
-          <div className="dialog" onClick={(e) => e.stopPropagation()} style={{ textAlign: "center", minWidth: 360 }}>
-            <h3 style={{ marginBottom: 8 }}>{t("updater.startupNewVersion")}</h3>
-            <p style={{ color: "var(--text-secondary)", fontSize: 13, marginBottom: 8 }}>
+          <div className="dialog dialog--sm" onClick={(e) => e.stopPropagation()}>
+            <h3 className="dialog-title">{t("updater.startupNewVersion")}</h3>
+            <p className="dialog-sub" style={{ marginBottom: 8 }}>
               {t("updater.startupNewVersionDesc", { version: startupUpdate.version, currentVersion: appVersion ? `v${appVersion}` : "" })}
             </p>
             {startupUpdate.body && (
-              <p style={{ color: "var(--text-muted)", fontSize: 12, marginBottom: 12, maxHeight: 120, overflowY: "auto", textAlign: "left" }}>
+              <p style={{ color: "var(--ink-faint)", fontSize: "var(--fs-sm)", marginBottom: 12, maxHeight: 120, overflowY: "auto", textAlign: "left" }}>
                 {startupUpdate.body}
               </p>
             )}
             <div className="dialog-actions" style={{ justifyContent: "center" }}>
-              <button className="btn-secondary" onClick={handleDismissStartupUpdate}>
-                {t("common.cancel")}
-              </button>
-              <button className="btn-secondary" onClick={handleSkipVersion}>
-                {t("updater.skipVersion")}
-              </button>
-              <button className="btn-primary" onClick={handleStartupUpgrade}>
-                {t("updater.upgrade")}
-              </button>
+              <button className="btn btn--ghost" onClick={handleDismissStartupUpdate}>{t("common.cancel")}</button>
+              <button className="btn btn--ghost" onClick={handleSkipVersion}>{t("updater.skipVersion")}</button>
+              <button className="btn btn--primary" onClick={handleStartupUpgrade}>{t("updater.upgrade")}</button>
             </div>
           </div>
         </div>
       )}
-    </>
+    </div>
   );
 }
 

@@ -3,6 +3,8 @@ import { useTranslation } from "react-i18next";
 import Editor from "@monaco-editor/react";
 import type { Profile } from "../types";
 import { api } from "../api";
+import { useTheme } from "../theme";
+import { defineMonacoThemes } from "../lib/monacoThemes";
 
 interface Props {
   profile: Profile;
@@ -20,6 +22,7 @@ interface QuickSettings {
 
 export function SettingsEditor({ profile, onSaved }: Props) {
   const { t } = useTranslation();
+  const theme = useTheme();
   const [content, setContent] = useState(profile.settings_json);
   const [savedContent, setSavedContent] = useState(profile.settings_json);
   const [error, setError] = useState<string | null>(null);
@@ -35,6 +38,7 @@ export function SettingsEditor({ profile, onSaved }: Props) {
     haikuModel: "",
   });
   const editorRef = useRef<any>(null);
+  const monacoRef = useRef<any>(null);
 
   const parseQuickSettings = useCallback((json: string) => {
     try {
@@ -205,8 +209,11 @@ export function SettingsEditor({ profile, onSaved }: Props) {
     };
   }, [contextMenu]);
 
-  const handleEditorMount = (editor: any, _monaco: any) => {
+  const handleEditorMount = (editor: any, monaco: any) => {
     editorRef.current = editor;
+    monacoRef.current = monaco;
+    defineMonacoThemes(monaco);
+    monaco.editor.setTheme(theme === "dark" ? "llm-dark" : "llm-light");
     const editorDom = editor.getDomNode();
     if (editorDom) {
       editorDom.addEventListener(
@@ -227,43 +234,42 @@ export function SettingsEditor({ profile, onSaved }: Props) {
     parseQuickSettings(newContent);
   };
 
-  const ctxMenuItem: React.CSSProperties = {
-    padding: "6px 24px",
-    cursor: "pointer",
-    fontSize: 13,
-    color: "#ccc",
-    whiteSpace: "nowrap",
-  };
+  const editorTheme = theme === "dark" ? "llm-dark" : "llm-light";
+
+  // Keep Monaco theme in sync with the app theme (editor may mount after init)
+  useEffect(() => {
+    monacoRef.current?.editor.setTheme(editorTheme);
+  }, [editorTheme]);
 
   return (
-    <div className="editor-container" style={{ display: "flex", flexDirection: "column" }}>
-      <div style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 24px", borderBottom: "1px solid var(--border)" }}>
-        <button className="btn-primary btn-sm" onClick={handleSave} disabled={!hasChanges}>
+    <div className="editor-container">
+      <div className="toolbar">
+        <button className="btn btn--primary btn--sm" onClick={handleSave} disabled={!hasChanges}>
           {t("common.save")}
         </button>
-        <button className="btn-secondary btn-sm" onClick={handleFormat}>
+        <button className="btn btn--ghost btn--sm" onClick={handleFormat}>
           {t("editor.format")}
         </button>
         {hasChanges && (
-          <span style={{ fontSize: 12, color: "var(--warning)" }}>{t("editor.unsaved")}</span>
+          <span className="status-text status-text--warn">{t("editor.unsaved")}</span>
         )}
-        {error && <span style={{ fontSize: 12, color: "var(--danger)" }}>{error}</span>}
+        {error && <span className="status-text status-text--err">{error}</span>}
         {profile.is_active && (
-          <span style={{ fontSize: 12, color: "var(--accent)", marginLeft: "auto" }}>{t("editor.activeHint")}</span>
+          <span className="status-text status-text--rx" style={{ marginLeft: "auto" }}>{t("editor.activeHint")}</span>
         )}
       </div>
 
-      <div className="quick-settings" style={{ padding: "12px 24px", borderBottom: "1px solid var(--border)", display: "flex", flexWrap: "wrap", gap: 12 }}>
-        <div className="form-group" style={{ flex: "1 1 300px", minWidth: 200 }}>
-          <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>Base URL</label>
+      <div className="quick-settings">
+        <div className="form-group form-group--wide">
+          <label className="field-label">{t("editor.quickBaseUrl")}</label>
           <input
             value={quickSettings.baseUrl}
             onChange={(e) => updateJsonFromQuickSetting("baseUrl", e.target.value)}
             placeholder="https://api.anthropic.com"
           />
         </div>
-        <div className="form-group" style={{ flex: "1 1 200px", minWidth: 150 }}>
-          <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>Auth Token</label>
+        <div className="form-group form-group--md">
+          <label className="field-label">{t("editor.quickAuthToken")}</label>
           <input
             type="password"
             value={quickSettings.authToken}
@@ -271,32 +277,32 @@ export function SettingsEditor({ profile, onSaved }: Props) {
             placeholder="sk-ant-..."
           />
         </div>
-        <div className="form-group" style={{ flex: "1 1 150px", minWidth: 120 }}>
-          <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>Model</label>
+        <div className="form-group form-group--sm">
+          <label className="field-label">{t("editor.quickModel")}</label>
           <input
             value={quickSettings.model}
             onChange={(e) => updateJsonFromQuickSetting("model", e.target.value)}
             placeholder="claude-sonnet-4-20250514"
           />
         </div>
-        <div className="form-group" style={{ flex: "1 1 150px", minWidth: 120 }}>
-          <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>Haiku Model</label>
+        <div className="form-group form-group--sm">
+          <label className="field-label">{t("editor.quickHaikuModel")}</label>
           <input
             value={quickSettings.haikuModel}
             onChange={(e) => updateJsonFromQuickSetting("haikuModel", e.target.value)}
             placeholder="claude-haiku-3-5"
           />
         </div>
-        <div className="form-group" style={{ flex: "1 1 150px", minWidth: 120 }}>
-          <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>Sonnet Model</label>
+        <div className="form-group form-group--sm">
+          <label className="field-label">{t("editor.quickSonnetModel")}</label>
           <input
             value={quickSettings.sonnetModel}
             onChange={(e) => updateJsonFromQuickSetting("sonnetModel", e.target.value)}
             placeholder="claude-sonnet-4"
           />
         </div>
-        <div className="form-group" style={{ flex: "1 1 150px", minWidth: 120 }}>
-          <label style={{ fontSize: 11, color: "var(--text-secondary)" }}>Opus Model</label>
+        <div className="form-group form-group--sm">
+          <label className="field-label">{t("editor.quickOpusModel")}</label>
           <input
             value={quickSettings.opusModel}
             onChange={(e) => updateJsonFromQuickSetting("opusModel", e.target.value)}
@@ -305,11 +311,11 @@ export function SettingsEditor({ profile, onSaved }: Props) {
         </div>
       </div>
 
-      <div style={{ flex: 1, position: "relative" }}>
+      <div className="editor-host">
         <Editor
           height="100%"
           language="json"
-          theme="vs-dark"
+          theme={editorTheme}
           value={content}
           onChange={handleEditorChange}
           onMount={handleEditorMount}
@@ -324,66 +330,28 @@ export function SettingsEditor({ profile, onSaved }: Props) {
           }}
         />
         {showSaved && (
-          <div
-            style={{
-              position: "absolute",
-              top: 24,
-              left: "50%",
-              transform: "translateX(-50%)",
-              zIndex: 10000,
-              background: "var(--success)",
-              color: "var(--bg-primary)",
-              fontSize: 12,
-              fontWeight: 600,
-              padding: "6px 16px",
-              borderRadius: 4,
-              boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-              pointerEvents: "none",
-            }}
-          >
+          <div className="toast">
             {t("editor.saved")}
           </div>
         )}
         {contextMenu && (
           <div
-            style={{
-              position: "fixed",
-              left: contextMenu.x,
-              top: contextMenu.y,
-              zIndex: 10000,
-              background: "#252526",
-              border: "1px solid #454545",
-              borderRadius: 4,
-              padding: "4px 0",
-              boxShadow: "0 2px 8px rgba(0,0,0,0.36)",
-              minWidth: 160,
-            }}
+            className="ctx-menu"
+            style={{ left: contextMenu.x, top: contextMenu.y }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div
-              style={ctxMenuItem}
-              onClick={doEditorCopy}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#094771")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-            >
-              Copy ⌘C
+            <div className="ctx-menu-item" onClick={doEditorCopy}>
+              <span>{t("editor.contextCopy")}</span>
+              <kbd>⌘C</kbd>
             </div>
-            <div
-              style={ctxMenuItem}
-              onClick={doEditorCut}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#094771")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-            >
-              Cut ⌘X
+            <div className="ctx-menu-item" onClick={doEditorCut}>
+              <span>{t("editor.contextCut")}</span>
+              <kbd>⌘X</kbd>
             </div>
-            <div style={{ height: 1, background: "#454545", margin: "4px 0" }} />
-            <div
-              style={ctxMenuItem}
-              onClick={doSelectAll}
-              onMouseEnter={(e) => (e.currentTarget.style.background = "#094771")}
-              onMouseLeave={(e) => (e.currentTarget.style.background = "transparent")}
-            >
-              Select All ⌘A
+            <div className="ctx-menu-sep" />
+            <div className="ctx-menu-item" onClick={doSelectAll}>
+              <span>{t("editor.contextSelectAll")}</span>
+              <kbd>⌘A</kbd>
             </div>
           </div>
         )}

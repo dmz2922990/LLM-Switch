@@ -2,10 +2,12 @@
 
 [English](README_EN.md)
 
-> **在一个简洁的「仪表盘」式界面中管理多个 Claude Code 配置。**
-> 切换配置、监控用量、远程同步——一个原生桌面应用全部搞定。
+> **每个开发环境的 Claude Code 配置，都由你集中管理、一键下发。**
+> 远程切换 API Key、同步配置到虚拟机与远程主机——告别每台设备手动编辑 `settings.json`。
 
-**LLM Switch** 是一款面向开发者的桌面应用，用于管理多个 Claude Code 配置文件。告别手动编辑 `~/.claude/settings.json`——通过可视化卡片面板，即可创建、切换、监控和同步你的配置，兼具原生性能与精致的暗/亮双主题界面。
+做嵌入式、内核或底层开发时，Claude Code 往往跑在**虚拟机、开发板或远程服务器**上——而 API Key、Base URL、模型偏好，却散落在各台机器的 `~/.claude/settings.json` 里。想切换 Key、更换模型时，你不得不 SSH 进每台环境，手动改 JSON、小心覆盖文件：步骤繁琐、容易遗漏，还会在多台设备间留下过期或冲突的配置。
+
+**LLM Switch** 把这一切收进一个桌面仪表盘：为每个环境创建配置档案，改好 Key 与模型后，**一键通过 SSH/SFTP 推送到目标设备**，远程的 Claude Code 立刻用上新配置——**远程切换 Key，像本地切换档案一样简单**。
 
 ![亮色模式](https://github.com/user-attachments/assets/bf997cb7-d797-4005-a671-1100291ce1f3)
 *亮色主题 — 档案仪表盘*

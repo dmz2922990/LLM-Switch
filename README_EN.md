@@ -5,9 +5,9 @@
 > **Every dev environment's Claude Code config — centrally managed, pushed in one click.**
 > Switch API keys remotely and sync configs to VMs and remote hosts. No more hand-editing `settings.json` on each machine.
 
-Working on embedded, kernel, or low-level development? Claude Code often runs inside a **VM, dev board, or remote server** — while your API key, base URL, and model preferences sit scattered across `~/.claude/settings.json` files on every machine. Switching keys or swapping models means SSH-ing into each environment, hand-editing JSON, and carefully overwriting files: tedious, error-prone, and a recipe for stale or conflicting configs across devices.
+On a VM or remote server, your API key, base URL, and model preferences often sit scattered across `~/.claude/settings.json` files on each machine. Switching keys or swapping models means SSH-ing into every environment, hand-editing JSON, and carefully overwriting files: tedious and error-prone.
 
-**LLM Switch** pulls all of that into a desktop dashboard. Create a config profile per environment, tweak your key and model, then **push it to any target device over SSH/SFTP in one click** — your remote Claude Code picks up the new config immediately. **Switching keys remotely becomes as easy as switching profiles locally.**
+**LLM Switch** pulls all of that into a desktop dashboard. Create a config profile per environment, tweak your key and model, then **push it to a chosen target host over SSH/SFTP in one click** — your remote Claude Code picks up the new config immediately. **Switching keys remotely becomes as easy as switching profiles locally.**
 
 ![Light mode](https://github.com/user-attachments/assets/bf997cb7-d797-4005-a671-1100291ce1f3)
 *Light theme — profile dashboard*

@@ -108,7 +108,7 @@
     "decryptFailed": "Password decryption failed. The key may have changed. Please edit the host and re-enter the password."
   },
   "about": {
-    "description": "Centrally manage your Claude Code configs and switch API keys & models remotely in one click — on your machine or in a VM, dev board, or remote server. Keep every dev environment's config in sync and consistent."
+    "description": "Centrally manage your Claude Code configs and push API keys, models, and other settings to remote hosts in one click — effective immediately."
   },
   "tray": {
     "openWindow": "Open Main Window",

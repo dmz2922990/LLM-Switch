@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import type { Profile, UsageInfo } from "../types";
 import { api } from "../api";
@@ -34,6 +35,7 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
   const [usage, setUsage] = useState<UsageInfo | null>(null);
   const [loading, setLoading] = useState(false);
   const [hovered, setHovered] = useState<{ label: string; top: number; left: number } | null>(null);
+  const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const env = parseEnv(profile.settings_json);
@@ -67,6 +69,13 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
     };
   }, [baseUrl, authToken, fetchUsage]);
 
+  // Clear pending hover-close timer on unmount
+  useEffect(() => {
+    return () => {
+      if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+    };
+  }, []);
+
   if (!usage || usage.quotas.length === 0) return null;
 
   return (
@@ -76,16 +85,40 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
           key={q.label}
           className="profile-usage-quota"
           onMouseEnter={(e) => {
-            const rect = e.currentTarget.getBoundingClientRect();
-            setHovered({ label: q.label, top: rect.top - 4, left: rect.left });
+            if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+            setHovered({ label: q.label, top: e.clientY + 14, left: e.clientX + 12 });
           }}
-          onMouseLeave={() => setHovered(null)}
+          onMouseMove={(e) => {
+            setHovered((prev) => prev ? { ...prev, top: e.clientY + 14, left: e.clientX + 12 } : prev);
+          }}
+          onMouseLeave={() => {
+            if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+            hoverTimerRef.current = setTimeout(() => setHovered(null), 80);
+          }}
         >
           {q.label === "Balance" ? (
             <div className="profile-usage-balance">
               <span className="profile-usage-label">{t("usage.balance")}</span>
               <span className="profile-usage-balance-amt">{q.remaining ?? "-"}</span>
             </div>
+          ) : q.label === "MCP" ? (
+            <>
+              <span className="profile-usage-label">{t("usage.mcp")}</span>
+              <div className="profile-usage-row">
+                <div className="profile-usage-bar">
+                  <div
+                    className={`profile-usage-bar-fill ${getBarClass(q.percentage)}`}
+                    style={{ width: `${Math.min(q.percentage, 100)}%` }}
+                  />
+                </div>
+                <span className="profile-usage-pct">{q.percentage.toFixed(0)}%</span>
+              </div>
+              {q.next_reset_time ? (
+                <span className="profile-usage-reset">
+                  {t("usage.resetAt")} {formatResetTime(q.next_reset_time)}
+                </span>
+              ) : null}
+            </>
           ) : (
             <>
               <span className="profile-usage-label">{q.label}</span>
@@ -118,10 +151,12 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
       {hovered && (() => {
         const q = usage.quotas.find(q => q.label === hovered.label);
         if (!q || !q.remaining) return null;
-        return (
+        const text = q.label === "MCP" ? q.remaining : `${t("usage.remaining")}: ${q.remaining}`;
+        return createPortal(
           <div className="profile-usage-tooltip" style={{ top: hovered.top, left: hovered.left }}>
-            {t("usage.remaining")}: {q.remaining}
-          </div>
+            {text}
+          </div>,
+          document.body
         );
       })()}
     </div>

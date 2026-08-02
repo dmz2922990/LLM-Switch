@@ -1191,7 +1191,6 @@ html[data-theme="light"] .profile-usage-bar {
   box-shadow: var(--shadow-menu);
   z-index: 9999;
   pointer-events: none;
-  transform: translateY(-100%);
 }
 
 /* ===== 6. Theme tweaks ===== */

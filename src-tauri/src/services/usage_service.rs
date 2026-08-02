@@ -30,6 +30,15 @@ fn match_provider(url: &str) -> Option<(&'static str, &'static str)> {
 
 // --- ZhiPu fetch ---
 
+/// Some APIs report percentage as 0–1, others as 0–100. Normalize to 0–100.
+fn normalize_pct(pct: f64) -> f64 {
+    if pct > 0.0 && pct <= 1.0 {
+        pct * 100.0
+    } else {
+        pct
+    }
+}
+
 async fn fetch_zhipu_usage(token: &str) -> Result<UsageInfo, ProviderError> {
     let client = Client::builder()
         .timeout(Duration::from_secs(5))
@@ -56,8 +65,26 @@ async fn fetch_zhipu_usage(token: &str) -> Result<UsageInfo, ProviderError> {
     let target_units = [(3i64, "5h"), (6i64, "Weekly")];
     let mut quotas = Vec::new();
 
+    // MCP monthly quota lives in the TIME_LIMIT entry.
+    // Response shape: usage (total quota) = currentValue (used) + remaining.
+    let mut has_time_limit = false;
+    let mut mcp_reset_time = 0_i64;
+    let mut mcp_usage = 0_i64;      // total quota
+    let mut mcp_current = 0_i64;    // used
+    let mut mcp_remaining = 0_i64;  // remaining
+
     for limit in &limits {
         let limit_type = limit.get("type").and_then(|v| v.as_str()).unwrap_or("");
+
+        if limit_type == "TIME_LIMIT" {
+            has_time_limit = true;
+            mcp_reset_time = limit.get("nextResetTime").and_then(|v| v.as_i64()).unwrap_or(0);
+            mcp_usage = limit.get("usage").and_then(|v| v.as_i64()).unwrap_or(0);
+            mcp_current = limit.get("currentValue").and_then(|v| v.as_i64()).unwrap_or(0);
+            mcp_remaining = limit.get("remaining").and_then(|v| v.as_i64()).unwrap_or(0);
+            continue;
+        }
+
         if limit_type != "TOKENS_LIMIT" {
             continue;
         }
@@ -65,11 +92,29 @@ async fn fetch_zhipu_usage(token: &str) -> Result<UsageInfo, ProviderError> {
         if let Some((_, label)) = target_units.iter().find(|(u, _)| *u == unit) {
             quotas.push(QuotaInfo {
                 label: label.to_string(),
-                percentage: limit.get("percentage").and_then(|v| v.as_f64()).unwrap_or(0.0),
+                percentage: normalize_pct(limit.get("percentage").and_then(|v| v.as_f64()).unwrap_or(0.0)),
                 next_reset_time: limit.get("nextResetTime").and_then(|v| v.as_i64()).unwrap_or(0),
                 remaining: None,
+                usage: None,
             });
         }
+    }
+
+    if has_time_limit {
+        // The API's percentage field is unreliable; compute usage ratio ourselves.
+        // usage is the total quota (usage = currentValue + remaining).
+        let pct = if mcp_usage > 0 {
+            mcp_current as f64 / mcp_usage as f64 * 100.0
+        } else {
+            0.0
+        };
+        quotas.push(QuotaInfo {
+            label: "MCP".to_string(),
+            percentage: pct,
+            next_reset_time: mcp_reset_time,
+            usage: Some(mcp_usage),
+            remaining: Some(format!("已用 {}/剩余 {}", mcp_current, mcp_remaining)),
+        });
     }
 
     Ok(UsageInfo {
@@ -131,6 +176,7 @@ async fn fetch_kimi_usage(token: &str) -> Result<UsageInfo, ProviderError> {
                 percentage: pct,
                 next_reset_time: reset_time,
                 remaining: Some(format!("{}/{}", used as i64, limit as i64)),
+                usage: None,
             });
         }
     }
@@ -160,6 +206,7 @@ async fn fetch_kimi_usage(token: &str) -> Result<UsageInfo, ProviderError> {
             percentage: pct,
             next_reset_time: reset_time,
             remaining: Some(format!("{}/{}", used as i64, limit as i64)),
+            usage: None,
         });
     }
 
@@ -208,6 +255,7 @@ async fn fetch_deepseek_usage(token: &str) -> Result<UsageInfo, ProviderError> {
             percentage: 0.0,
             next_reset_time: 0,
             remaining: Some(format!("{}{}", total, currency)),
+            usage: None,
         });
     }
 

@@ -7,6 +7,9 @@ pub struct QuotaInfo {
     pub next_reset_time: i64,
     #[serde(skip_serializing_if = "Option::is_none")]
     pub remaining: Option<String>,
+    // Numeric total usage — currently only ZhiPu MCP. Other providers leave None.
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub usage: Option<i64>,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

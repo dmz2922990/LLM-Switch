@@ -136,6 +136,7 @@
     "nextRefresh": "Next refresh",
     "resetAt": "Resets at",
     "remaining": "Remaining",
-    "balance": "Balance"
+    "balance": "Balance",
+    "mcp": "MCP"
   }
 }

@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import type { Profile } from "../types";
+import type { Profile, SyncHistory } from "../types";
 import { ProfileCard } from "./ProfileCard";
 
 interface Props {
@@ -12,12 +12,18 @@ interface Props {
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
   onReorder: (orderedIds: string[]) => void;
+  onOpenSyncHistory: () => void;
   syncingId: string | null;
+  syncSummaries: Record<string, SyncHistory>;
+  latestSyncId: string | null;
+  flashProfileId: string | null;
+  hostNames: Record<string, string>;
 }
 
 export function ProfileGrid({
   profiles, selectedId, onSelect, onSwitchActive, onOpenSettings,
-  onSync, onCopy, onDelete, onReorder, syncingId,
+  onSync, onCopy, onDelete, onReorder, onOpenSyncHistory, syncingId,
+  syncSummaries, latestSyncId, flashProfileId, hostNames,
 }: Props) {
   const { t } = useTranslation();
 
@@ -50,7 +56,11 @@ export function ProfileGrid({
           onCopy={onCopy}
           onDelete={onDelete}
           onMove={handleMove}
+          onOpenSyncHistory={onOpenSyncHistory}
           syncing={syncingId === p.id}
+          latestSync={latestSyncId === p.id ? (syncSummaries[p.id] ?? null) : null}
+          flash={flashProfileId === p.id}
+          hostNames={hostNames}
         />
       ))}
     </div>

@@ -39,12 +39,14 @@
   --danger: #e5534b;
   --danger-strong: #c53c35;
   --warn: #e3b341;
+  --info: #5aa9ff;
 
   /* translucent signal fills */
   --rx-soft: rgba(79, 214, 194, 0.12);
   --link-soft: rgba(126, 231, 135, 0.1);
   --danger-soft: rgba(229, 83, 75, 0.12);
   --warn-soft: rgba(227, 179, 65, 0.12);
+  --info-soft: rgba(90, 169, 255, 0.12);
 
   /* overlays & shadows */
   --overlay: rgba(8, 9, 12, 0.66);
@@ -98,11 +100,13 @@ html[data-theme="light"] {
   --danger: #c8392f;
   --danger-strong: #a82e26;
   --warn: #9a6b0c;
+  --info: #1a6bd6;
 
   --rx-soft: rgba(12, 127, 115, 0.1);
   --link-soft: rgba(24, 122, 67, 0.1);
   --danger-soft: rgba(200, 57, 47, 0.1);
   --warn-soft: rgba(154, 107, 12, 0.12);
+  --info-soft: rgba(26, 107, 214, 0.1);
 
   --overlay: rgba(40, 35, 25, 0.42);
   --shadow-dialog: 0 24px 64px rgba(60, 50, 30, 0.22);
@@ -375,6 +379,26 @@ select {
   border: none;
   cursor: default;
 }
+
+.badge--danger {
+  color: var(--danger);
+  background: var(--danger-soft);
+  cursor: pointer;
+}
+.badge--info {
+  color: var(--info);
+  background: var(--info-soft);
+  cursor: pointer;
+}
+.badge--link {
+  cursor: pointer;
+}
+
+@keyframes sync-flash-info {
+  from { background-color: var(--info); color: var(--bg); }
+  to { background-color: var(--info-soft); }
+}
+.sync-badge.is-flash { animation: sync-flash-info 1.2s var(--ease); }
 
 .default-badge {
   font-size: 10px;

@@ -1,8 +1,9 @@
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-import type { Profile } from "../types";
+import type { Profile, SyncHistory } from "../types";
 import { api } from "../api";
 import { UsageDisplay } from "./UsageDisplay";
+import { formatRelativeTime } from "../lib/format";
 import {
   IconCheck, IconChevronDown, IconChevronUp, IconCopy, IconPencil, IconRefresh, IconSettings, IconSync, IconX,
 } from "./icons";
@@ -19,12 +20,17 @@ interface Props {
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
   onMove: (index: number, direction: -1 | 1) => void;
+  onOpenSyncHistory: () => void;
   syncing: boolean;
+  latestSync: SyncHistory | null;
+  flash: boolean;
+  hostNames: Record<string, string>;
 }
 
 export function ProfileCard({
   profile, selected, index, count, onSelect, onSwitchActive,
-  onOpenSettings, onSync, onCopy, onDelete, onMove, syncing,
+  onOpenSettings, onSync, onCopy, onDelete, onMove, onOpenSyncHistory, syncing,
+  latestSync, flash, hostNames,
 }: Props) {
   const { t } = useTranslation();
   const [renaming, setRenaming] = useState(false);
@@ -75,6 +81,15 @@ export function ProfileCard({
             >
               <IconCheck size={13} />
             </button>
+          )}
+          {latestSync && (
+            <span
+              className={`badge sync-badge badge--info${flash ? " is-flash" : ""}`}
+              title={`${formatRelativeTime(latestSync.synced_at)} → ${hostNames[latestSync.host_id] ?? latestSync.host_id}${latestSync.error_message ? ` · ${latestSync.error_message}` : ""}`}
+              onClick={(e) => { e.stopPropagation(); onOpenSyncHistory(); }}
+            >
+              {t("sync.remoteBadge")}
+            </span>
           )}
           <button
             className="icon-btn"

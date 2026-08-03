@@ -83,7 +83,8 @@
     "syncScope": "Sync Scope",
     "selectAll": "Select All",
     "scopeHint": "Unchecked fields will keep their remote values",
-    "noKeysFound": "No fields available (empty or invalid JSON)"
+    "noKeysFound": "No fields available (empty or invalid JSON)",
+    "remoteBadge": "Remote"
   },
   "host": {
     "title": "Remote Hosts",

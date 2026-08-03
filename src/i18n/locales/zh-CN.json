@@ -83,7 +83,8 @@
     "syncScope": "同步范围",
     "selectAll": "全选",
     "scopeHint": "未选中的字段将保留远程原有值",
-    "noKeysFound": "无可用字段（JSON 为空或无效）"
+    "noKeysFound": "无可用字段（JSON 为空或无效）",
+    "remoteBadge": "远程"
   },
   "host": {
     "title": "远程主机",

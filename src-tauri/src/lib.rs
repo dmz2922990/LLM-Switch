@@ -120,6 +120,7 @@ pub fn run() {
             commands::update_host,
             commands::delete_host,
             commands::set_default_host,
+            commands::unset_default_host,
             commands::test_host_connection,
             commands::test_saved_host,
             commands::sync_to_host,

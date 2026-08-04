@@ -20,6 +20,7 @@ interface Props {
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
   onMove: (index: number, direction: -1 | 1) => void;
+  onRenamed: () => void;
   onOpenSyncHistory: () => void;
   syncing: boolean;
   latestSync: SyncHistory | null;
@@ -29,7 +30,7 @@ interface Props {
 
 export function ProfileCard({
   profile, selected, index, count, onSelect, onSwitchActive,
-  onOpenSettings, onSync, onCopy, onDelete, onMove, onOpenSyncHistory, syncing,
+  onOpenSettings, onSync, onCopy, onDelete, onMove, onRenamed, onOpenSyncHistory, syncing,
   latestSync, flash, hostNames,
 }: Props) {
   const { t } = useTranslation();
@@ -41,6 +42,7 @@ export function ProfileCard({
     if (!renameVal.trim() || renameVal.trim() === profile.name) return;
     try {
       await api.profile.rename(profile.id, renameVal.trim());
+      onRenamed();
     } catch (err: any) {
       alert(err.toString());
     }
@@ -48,7 +50,7 @@ export function ProfileCard({
 
   return (
     <div
-      className={`profile-card${selected ? " is-selected" : ""}`}
+      className={`profile-card${selected ? " is-selected" : ""}${renaming ? " is-renaming" : ""}`}
       onClick={() => onSelect(profile.id)}
     >
       <div className="profile-card-top">

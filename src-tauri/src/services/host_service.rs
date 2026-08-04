@@ -115,6 +115,14 @@ pub async fn set_default(pool: &SqlitePool, host_id: &str) -> Result<Host, Strin
         .map_err(|e| format!("Failed to set default host: {}", e))
 }
 
+pub async fn unset_default(pool: &SqlitePool) -> Result<(), String> {
+    sqlx::query("UPDATE hosts SET is_default = 0")
+        .execute(pool)
+        .await
+        .map_err(|e| format!("Failed to clear default host: {}", e))?;
+    Ok(())
+}
+
 pub async fn get_password(pool: &SqlitePool, id: &str) -> Result<Option<String>, String> {
     let host = get_by_id(pool, id).await?;
     match host.encrypted_password {

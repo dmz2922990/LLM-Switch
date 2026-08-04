@@ -167,6 +167,15 @@ export function HostManager({ hosts, onRefresh, embedded }: Props) {
     }
   };
 
+  const handleUnsetDefault = async () => {
+    try {
+      await api.host.unsetDefault();
+      onRefresh();
+    } catch (e: any) {
+      alert(e.toString());
+    }
+  };
+
   const startEdit = (h: Host) => {
     setEditing(h);
     setForm({
@@ -205,7 +214,11 @@ export function HostManager({ hosts, onRefresh, embedded }: Props) {
                   {t("common.test")}
                 </button>
                 <button className="btn btn--ghost btn--sm" onClick={() => startEdit(h)}>{t("common.edit")}</button>
-                {!h.is_default && (
+                {h.is_default ? (
+                  <button className="btn btn--ghost btn--sm" onClick={handleUnsetDefault}>
+                    {t("sync.unsetDefault")}
+                  </button>
+                ) : (
                   <button className="btn btn--ghost btn--sm" onClick={() => handleSetDefault(h)}>
                     {t("sync.setDefault")}
                   </button>

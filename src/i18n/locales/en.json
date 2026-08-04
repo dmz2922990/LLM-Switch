@@ -77,6 +77,7 @@
     "noRecords": "No sync records",
     "defaultHost": "Default",
     "setDefault": "Set Default",
+    "unsetDefault": "Unset Default",
     "hashNA": "N/A",
     "prevPage": "Prev",
     "nextPage": "Next",
@@ -135,7 +136,7 @@
   "usage": {
     "refresh": "Refresh Usage",
     "nextRefresh": "Next refresh",
-    "resetAt": "Resets at",
+    "resetAt": "Resets at ",
     "remaining": "Remaining",
     "balance": "Balance",
     "mcp": "MCP"

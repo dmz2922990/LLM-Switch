@@ -137,15 +137,17 @@ function App() {
   }, [t]);
 
   const handleDownloadAndInstall = useCallback(async () => {
+    setUpdateStatus({ state: "downloading", percent: 0 });
     try {
       const update = await check();
-      if (!update) return;
+      if (!update) { setUpdateStatus({ state: "idle" }); return; }
       let downloaded = 0;
       let contentLength = 0;
       await update.downloadAndInstall((event) => {
         switch (event.event) {
           case "Started":
             contentLength = event.data.contentLength ?? 0;
+            setUpdateStatus({ state: "downloading", percent: 0 });
             break;
           case "Progress":
             downloaded += event.data.chunkLength;
@@ -318,6 +320,7 @@ function App() {
           onCopy={(id) => setCopyingId(id)}
           onDelete={(id) => setDeletingId(id)}
           onReorder={handleReorder}
+          onRenamed={refresh}
           syncingId={syncingProfileId}
           syncSummaries={syncSummaries}
           latestSyncId={latestSyncId}

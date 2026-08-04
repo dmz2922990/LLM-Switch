@@ -12,6 +12,7 @@ interface Props {
   onCopy: (id: string) => void;
   onDelete: (id: string) => void;
   onReorder: (orderedIds: string[]) => void;
+  onRenamed: () => void;
   onOpenSyncHistory: () => void;
   syncingId: string | null;
   syncSummaries: Record<string, SyncHistory>;
@@ -22,7 +23,7 @@ interface Props {
 
 export function ProfileGrid({
   profiles, selectedId, onSelect, onSwitchActive, onOpenSettings,
-  onSync, onCopy, onDelete, onReorder, onOpenSyncHistory, syncingId,
+  onSync, onCopy, onDelete, onReorder, onRenamed, onOpenSyncHistory, syncingId,
   syncSummaries, latestSyncId, flashProfileId, hostNames,
 }: Props) {
   const { t } = useTranslation();
@@ -56,6 +57,7 @@ export function ProfileGrid({
           onCopy={onCopy}
           onDelete={onDelete}
           onMove={handleMove}
+          onRenamed={onRenamed}
           onOpenSyncHistory={onOpenSyncHistory}
           syncing={syncingId === p.id}
           latestSync={latestSyncId === p.id ? (syncSummaries[p.id] ?? null) : null}

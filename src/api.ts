@@ -41,6 +41,8 @@ export const api = {
       invoke<void>("test_saved_host", { hostId }),
     setDefault: (hostId: string) =>
       invoke<Host>("set_default_host", { hostId }),
+    unsetDefault: () =>
+      invoke<void>("unset_default_host"),
   },
   sync: {
     toHost: (profileId: string, hostId: string) =>

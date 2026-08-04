@@ -60,12 +60,12 @@
   --font-mono: "IBM Plex Mono", "SF Mono", "Cascadia Mono", Menlo, Consolas, monospace;
 
   /* type scale */
-  --fs-xs: 11px;
-  --fs-sm: 12px;
-  --fs-base: 13px;
-  --fs-md: 14px;
-  --fs-lg: 16px;
-  --fs-xl: 22px;
+  --fs-xs: 12px;
+  --fs-sm: 13px;
+  --fs-base: 14px;
+  --fs-md: 15px;
+  --fs-lg: 17px;
+  --fs-xl: 23px;
 
   /* radius */
   --r-sm: 3px;
@@ -710,6 +710,9 @@ select {
   background: var(--surface-2);
   border-left: 3px solid var(--rx);
 }
+.profile-card.is-renaming .profile-card-actions {
+  display: none;
+}
 .profile-card-top {
   display: flex;
   align-items: center;
@@ -1142,8 +1145,8 @@ select {
   font-family: var(--font-mono);
 }
 .profile-usage-bar {
-  width: 56px;
-  height: 4px;
+  width: 72px;
+  height: 6px;
   background: rgba(255, 255, 255, 0.08);
   border-radius: var(--r-pill);
   overflow: hidden;
@@ -1166,13 +1169,13 @@ html[data-theme="light"] .profile-usage-bar {
   background: var(--danger);
 }
 .profile-usage-pct {
-  font-size: 10px;
+  font-size: var(--fs-xs);
   font-weight: 600;
-  min-width: 28px;
+  min-width: 30px;
   font-family: var(--font-mono);
 }
 .profile-usage-reset {
-  font-size: 9px;
+  font-size: var(--fs-xs);
   color: var(--ink-faint);
   font-family: var(--font-mono);
   white-space: nowrap;
@@ -1223,8 +1226,8 @@ html[data-theme="light"] .profile-usage-bar {
   background: var(--surface);
   border: 1px solid var(--hairline);
   color: var(--ink-dim);
-  font-size: 10px;
-  padding: 4px 8px;
+  font-size: var(--fs-xs);
+  padding: 5px 9px;
   border-radius: var(--r-sm);
   white-space: nowrap;
   box-shadow: var(--shadow-menu);

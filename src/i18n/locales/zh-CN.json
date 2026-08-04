@@ -77,6 +77,7 @@
     "noRecords": "暂无同步记录",
     "defaultHost": "默认",
     "setDefault": "设为默认",
+    "unsetDefault": "取消默认",
     "hashNA": "N/A",
     "prevPage": "上一页",
     "nextPage": "下一页",

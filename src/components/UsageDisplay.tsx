@@ -115,7 +115,7 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
               </div>
               {q.next_reset_time ? (
                 <span className="profile-usage-reset">
-                  {t("usage.resetAt")} {formatResetTime(q.next_reset_time)}
+                  {t("usage.resetAt")}{formatResetTime(q.next_reset_time)}
                 </span>
               ) : null}
             </>
@@ -133,7 +133,7 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
               </div>
               {q.next_reset_time ? (
                 <span className="profile-usage-reset">
-                  {t("usage.resetAt")} {formatResetTime(q.next_reset_time)}
+                  {t("usage.resetAt")}{formatResetTime(q.next_reset_time)}
                 </span>
               ) : null}
             </>

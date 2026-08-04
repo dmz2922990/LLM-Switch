@@ -30,15 +30,6 @@ fn match_provider(url: &str) -> Option<(&'static str, &'static str)> {
 
 // --- ZhiPu fetch ---
 
-/// Some APIs report percentage as 0–1, others as 0–100. Normalize to 0–100.
-fn normalize_pct(pct: f64) -> f64 {
-    if pct > 0.0 && pct <= 1.0 {
-        pct * 100.0
-    } else {
-        pct
-    }
-}
-
 async fn fetch_zhipu_usage(token: &str) -> Result<UsageInfo, ProviderError> {
     let client = Client::builder()
         .timeout(Duration::from_secs(5))
@@ -92,7 +83,7 @@ async fn fetch_zhipu_usage(token: &str) -> Result<UsageInfo, ProviderError> {
         if let Some((_, label)) = target_units.iter().find(|(u, _)| *u == unit) {
             quotas.push(QuotaInfo {
                 label: label.to_string(),
-                percentage: normalize_pct(limit.get("percentage").and_then(|v| v.as_f64()).unwrap_or(0.0)),
+                percentage: limit.get("percentage").and_then(|v| v.as_f64()).unwrap_or(0.0),
                 next_reset_time: limit.get("nextResetTime").and_then(|v| v.as_i64()).unwrap_or(0),
                 remaining: None,
                 usage: None,

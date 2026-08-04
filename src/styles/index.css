@@ -469,6 +469,21 @@ select {
   padding: 0 20px 16px;
   flex-shrink: 0;
 }
+.dialog--settings {
+  width: min(640px, calc(100vw - 32px));
+  height: min(460px, calc(100vh - 48px));
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+.dialog--settings .dialog-title {
+  padding: 16px 20px 0;
+}
+.dialog--settings .dialog-actions {
+  padding: 0 20px 16px;
+  flex-shrink: 0;
+}
 .dialog-sub {
   color: var(--ink-dim);
   font-size: var(--fs-base);

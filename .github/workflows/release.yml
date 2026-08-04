@@ -26,6 +26,8 @@ jobs:
     runs-on: ${{ matrix.platform }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4
@@ -55,8 +57,10 @@ jobs:
         id: release_body
         shell: bash
         run: |
-          PREV=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
-          RANGE="$([ -z "$PREV" ] && echo HEAD || echo ${PREV}..HEAD)"
+          # Find the previous tag relative to the current tag (CI runs on the tagged commit).
+          CURRENT="${GITHUB_REF_NAME:-HEAD}"
+          PREV=$(git describe --tags --abbrev=0 "${CURRENT}^" 2>/dev/null || echo "")
+          RANGE="$([ -z "$PREV" ] && echo HEAD || echo ${PREV}..${CURRENT})"
           # clean: strip "[type:...]" prefix, cut verbose tail after " - ", dedupe
           clean() {
             sed -E 's/^\[(func_add|func_update|bug_fix):[^]]*\] ?//' \

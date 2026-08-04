@@ -5,7 +5,7 @@ interface Props {
   children: ReactNode;
   actions?: ReactNode;
   onClose?: () => void;
-  size?: "sm" | "md" | "lg";
+  size?: "sm" | "md" | "lg" | "settings";
   center?: boolean;
 }
 

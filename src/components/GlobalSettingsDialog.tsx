@@ -32,7 +32,7 @@ export function GlobalSettingsDialog({
   return (
     <Dialog
       title={t("globalSettings.title")}
-      size="lg"
+      size="settings"
       onClose={onClose}
     >
       <div className="gst-tabs">

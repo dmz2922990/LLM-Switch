@@ -7,12 +7,24 @@ interface Props {
   profile: Profile;
   hosts: Host[];
   onClose: () => void;
-  onSynced: (hostId: string) => void;
+  onSynced: (hostIds: string[]) => void;
 }
 
 export function SyncHostDialog({ profile, hosts, onClose, onSynced }: Props) {
   const { t } = useTranslation();
-  const [selected, setSelected] = useState<string>(hosts.find((h) => h.is_default)?.id ?? hosts[0]?.id ?? "");
+  const [selected, setSelected] = useState<Set<string>>(() => {
+    const def = hosts.find((h) => h.is_default)?.id;
+    return def ? new Set([def]) : new Set<string>();
+  });
+
+  const toggle = (id: string) => {
+    setSelected((prev) => {
+      const next = new Set(prev);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  };
 
   return (
     <Dialog
@@ -22,7 +34,11 @@ export function SyncHostDialog({ profile, hosts, onClose, onSynced }: Props) {
       actions={
         <>
           <button className="btn btn--ghost" onClick={onClose}>{t("common.cancel")}</button>
-          <button className="btn btn--primary" onClick={() => selected && onSynced(selected)} disabled={!selected}>
+          <button
+            className="btn btn--primary"
+            onClick={() => selected.size > 0 && onSynced(Array.from(selected))}
+            disabled={selected.size === 0}
+          >
             {t("common.sync")}
           </button>
         </>
@@ -35,10 +51,9 @@ export function SyncHostDialog({ profile, hosts, onClose, onSynced }: Props) {
         {hosts.map((h) => (
           <label key={h.id} className="host-check-row host-check-label">
             <input
-              type="radio"
-              name="sync-host"
-              checked={selected === h.id}
-              onChange={() => setSelected(h.id)}
+              type="checkbox"
+              checked={selected.has(h.id)}
+              onChange={() => toggle(h.id)}
             />
             {h.name} ({h.address}:{h.port})
             {h.is_default && <span className="default-badge">{t("sync.defaultHost")}</span>}

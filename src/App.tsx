@@ -226,23 +226,28 @@ function App() {
     setSyncingProfileId(profileId);
     try {
       const res = await api.sync.toHosts(profileId, hostIds);
-      const r = res[0];
-      if (r) {
-        // Write summary immediately so the card badge shows before refresh completes
+      const okCount = res.filter((r) => r.success).length;
+      const failCount = res.length - okCount;
+      // Summary badge reflects the last result; list each outcome in the tooltip via refresh().
+      const last = res[res.length - 1];
+      if (last) {
         setSyncSummaries((prev) => ({ ...prev, [profileId]: {
-          id: "", profile_id: profileId, host_id: r.host_id,
-          synced_at: new Date().toISOString(), status: r.success ? "success" : "failed",
-          error_message: r.error_message, source_hash: null, target_hash: null,
+          id: "", profile_id: profileId, host_id: last.host_id,
+          synced_at: new Date().toISOString(), status: last.success ? "success" : "failed",
+          error_message: last.error_message, source_hash: null, target_hash: null,
         }}));
         setFlashProfileId(profileId);
         if (flashTimerRef.current) clearTimeout(flashTimerRef.current);
         flashTimerRef.current = setTimeout(() => setFlashProfileId(null), 1200);
       }
-      if (r?.success) {
-        const host = hosts.find((h) => h.id === r.host_id);
-        showToast("ok", t("syncHost.syncedTo", { host: host?.name ?? r.host_id }));
+      if (failCount === 0) {
+        const names = res.map((r) => hosts.find((h) => h.id === r.host_id)?.name ?? r.host_id).join(", ");
+        showToast("ok", t("syncHost.syncedTo", { host: names }));
+      } else if (okCount === 0) {
+        const firstFail = res.find((r) => !r.success);
+        showToast("err", firstFail?.error_message ?? t("common.failed"));
       } else {
-        showToast("err", r?.error_message ?? t("common.failed"));
+        showToast("err", t("syncHost.partialFail", { ok: okCount, fail: failCount }));
       }
       refresh();
     } catch (e: any) {
@@ -342,7 +347,7 @@ function App() {
           profile={syncProfile}
           hosts={hosts}
           onClose={() => setSyncProfileId(null)}
-          onSynced={(hostId) => { doSync(syncProfile.id, [hostId]); setSyncProfileId(null); }}
+          onSynced={(hostIds) => { doSync(syncProfile.id, hostIds); setSyncProfileId(null); }}
         />
       )}
       {globalDialog.open && (

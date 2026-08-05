@@ -156,9 +156,15 @@ fn do_scp_upload(
     sync_keys: &[String],
 ) -> Result<UploadResult, String> {
     let addr = format!("{}:{}", address, port);
-    let tcp =
-        TcpStream::connect(&addr).map_err(|e| format!("Connection failed ({}): {}", addr, e))?;
+    let tcp = TcpStream::connect_timeout(
+        &addr
+            .parse()
+            .map_err(|e| format!("Invalid address: {}", e))?,
+        std::time::Duration::from_secs(5),
+    )
+    .map_err(|e| format!("Connection timeout ({}): {}", addr, e))?;
     let mut session = Session::new().map_err(|e| format!("SSH session error: {}", e))?;
+    session.set_timeout(5_000);
     session.set_tcp_stream(tcp);
     session
         .handshake()
@@ -256,7 +262,7 @@ pub fn test_connection(
         &addr
             .parse()
             .map_err(|e| format!("Invalid address: {}", e))?,
-        std::time::Duration::from_secs(10),
+        std::time::Duration::from_secs(5),
     )
     .map_err(|e| format!("Connection timeout: {}", e))?;
     let mut session = Session::new().map_err(|e| format!("SSH session error: {}", e))?;

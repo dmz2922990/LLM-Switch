@@ -27,7 +27,8 @@
     "title": "Select Sync Host",
     "desc": "No default host set. Choose a target:",
     "syncedTo": "Synced to {{host}}",
-    "noHosts": "Add a remote host in Global Settings first"
+    "noHosts": "Add a remote host in Global Settings first",
+    "partialFail": "Partial success: {{ok}} succeeded, {{fail}} failed"
   },
   "tabs": {
     "editor": "Config Editor",

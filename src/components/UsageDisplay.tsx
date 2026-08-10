@@ -34,6 +34,8 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
   const { t } = useTranslation();
   const [usage, setUsage] = useState<UsageInfo | null>(null);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [fetched, setFetched] = useState(false);
   const [hovered, setHovered] = useState<{ label: string; top: number; left: number } | null>(null);
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -45,18 +47,24 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
   const fetchUsage = useCallback(async () => {
     if (!baseUrl || !authToken) return;
     setLoading(true);
+    setError(null);
     try {
       const result = await api.usage.get(baseUrl, authToken);
       setUsage(result);
-    } catch {
+      setFetched(true);
+    } catch (e: any) {
       setUsage(null);
+      setError(e?.toString() ?? t("usage.fetchFailed"));
+      setFetched(true);
     } finally {
       setLoading(false);
     }
-  }, [baseUrl, authToken]);
+  }, [baseUrl, authToken, t]);
 
   useEffect(() => {
     setUsage(null);
+    setError(null);
+    setFetched(false);
     if (baseUrl && authToken) fetchUsage();
   }, [profile.id, baseUrl, authToken, fetchUsage]);
 
@@ -75,6 +83,40 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
       if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
     };
   }, []);
+
+  // Error state: show message with retry
+  if (error) {
+    return (
+      <div className="profile-usage-error">
+        <span className="profile-usage-error-msg">{error}</span>
+        <button
+          className="mini-btn"
+          onClick={(e) => { e.stopPropagation(); fetchUsage(); }}
+          title={t("usage.retry")}
+          disabled={loading}
+        >
+          {loading ? <IconRefresh size={12} className="spin" /> : <IconRefresh size={12} />}
+        </button>
+      </div>
+    );
+  }
+
+  // Fetched but no usage data (e.g. unsupported provider or empty account)
+  if (fetched && (!usage || usage.quotas.length === 0)) {
+    return (
+      <div className="profile-usage-error">
+        <span className="profile-usage-error-msg">{t("usage.noData")}</span>
+        <button
+          className="mini-btn"
+          onClick={(e) => { e.stopPropagation(); fetchUsage(); }}
+          title={t("usage.retry")}
+          disabled={loading}
+        >
+          {loading ? <IconRefresh size={12} className="spin" /> : <IconRefresh size={12} />}
+        </button>
+      </div>
+    );
+  }
 
   if (!usage || usage.quotas.length === 0) return null;
 

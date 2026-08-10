@@ -140,6 +140,9 @@
     "resetAt": "Resets at ",
     "remaining": "Remaining",
     "balance": "Balance",
-    "mcp": "MCP"
+    "mcp": "MCP",
+    "retry": "Retry",
+    "noData": "No usage data",
+    "fetchFailed": "Failed to fetch usage"
   }
 }

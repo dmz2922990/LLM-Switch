@@ -1126,6 +1126,21 @@ select {
   gap: 12px;
   padding: 2px 0 0;
 }
+.profile-usage-error {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 0 0;
+  color: var(--ink-faint);
+}
+.profile-usage-error-msg {
+  font-size: var(--fs-xs);
+  font-family: var(--font-mono);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 100%;
+}
 .profile-usage-quota {
   display: flex;
   flex-direction: column;

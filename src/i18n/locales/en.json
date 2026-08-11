@@ -143,6 +143,10 @@
     "mcp": "MCP",
     "retry": "Retry",
     "noData": "No usage data",
-    "fetchFailed": "Failed to fetch usage"
+    "fetchFailed": "Failed to fetch usage",
+    "resetDays": "{{n}}d",
+    "resetHours": "{{n}}h",
+    "resetMinutes": "{{n}}m",
+    "resetSoon": "soon"
   }
 }

@@ -3,7 +3,7 @@ import { createPortal } from "react-dom";
 import { useTranslation } from "react-i18next";
 import type { Profile, UsageInfo } from "../types";
 import { api } from "../api";
-import { IconRefresh } from "./icons";
+import { IconClock, IconRefresh } from "./icons";
 
 const REFRESH_INTERVAL = 5 * 60 * 1000;
 
@@ -22,12 +22,22 @@ function getBarClass(pct: number): string {
   return "is-ok";
 }
 
-function formatResetTime(ms: number): string {
+// Compact countdown: show only the largest unit (3天 / 5时 / 25分 / 即将).
+function formatCountdown(ms: number, now: number, t: (k: string, o?: Record<string, unknown>) => string): string {
+  const diffMs = ms - now;
+  if (diffMs <= 0) return t("usage.resetSoon");
+  const min = Math.floor(diffMs / 60000);
+  if (min >= 1440) return t("usage.resetDays", { n: Math.floor(min / 1440) });
+  if (min >= 60) return t("usage.resetHours", { n: Math.floor(min / 60) });
+  return t("usage.resetMinutes", { n: min });
+}
+
+// Exact ISO-ish time for tooltip: YYYY-MM-DD HH:mm
+function formatExactTime(ms: number): string {
   if (!ms) return "-";
-  return new Date(ms).toLocaleString(undefined, {
-    month: "2-digit", day: "2-digit",
-    hour: "2-digit", minute: "2-digit",
-  });
+  const d = new Date(ms);
+  const p = (n: number) => n.toString().padStart(2, "0");
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}`;
 }
 
 export function UsageDisplay({ profile }: { profile: Profile }) {
@@ -37,6 +47,7 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
   const [error, setError] = useState<string | null>(null);
   const [fetched, setFetched] = useState(false);
   const [hovered, setHovered] = useState<{ label: string; top: number; left: number } | null>(null);
+  const [now, setNow] = useState(Date.now());
   const hoverTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
@@ -76,6 +87,12 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
       if (timerRef.current) clearInterval(timerRef.current);
     };
   }, [baseUrl, authToken, fetchUsage]);
+
+  // Tick once a minute so countdowns stay current.
+  useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
 
   // Clear pending hover-close timer on unmount
   useEffect(() => {
@@ -156,8 +173,9 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
                 <span className="profile-usage-pct">{q.percentage.toFixed(0)}%</span>
               </div>
               {q.next_reset_time ? (
-                <span className="profile-usage-reset">
-                  {t("usage.resetAt")}{formatResetTime(q.next_reset_time)}
+                <span className="profile-usage-reset" title={`${t("usage.resetAt")}${formatExactTime(q.next_reset_time)}`}>
+                  <IconClock size={10} />
+                  {formatCountdown(q.next_reset_time, now, t)}
                 </span>
               ) : null}
             </>
@@ -174,8 +192,9 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
                 <span className="profile-usage-pct">{q.percentage.toFixed(0)}%</span>
               </div>
               {q.next_reset_time ? (
-                <span className="profile-usage-reset">
-                  {t("usage.resetAt")}{formatResetTime(q.next_reset_time)}
+                <span className="profile-usage-reset" title={`${t("usage.resetAt")}${formatExactTime(q.next_reset_time)}`}>
+                  <IconClock size={10} />
+                  {formatCountdown(q.next_reset_time, now, t)}
                 </span>
               ) : null}
             </>

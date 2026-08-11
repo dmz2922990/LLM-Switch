@@ -1190,6 +1190,9 @@ html[data-theme="light"] .profile-usage-bar {
   font-family: var(--font-mono);
 }
 .profile-usage-reset {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
   font-size: var(--fs-xs);
   color: var(--ink-faint);
   font-family: var(--font-mono);

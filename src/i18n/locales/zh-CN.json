@@ -143,6 +143,10 @@
     "mcp": "MCP",
     "retry": "重试",
     "noData": "暂无用量数据",
-    "fetchFailed": "用量获取失败"
+    "fetchFailed": "用量获取失败",
+    "resetDays": "{{n}}天",
+    "resetHours": "{{n}}小时",
+    "resetMinutes": "{{n}}分钟",
+    "resetSoon": "即将"
   }
 }

@@ -147,6 +147,8 @@
     "resetDays": "{{n}}d",
     "resetHours": "{{n}}h",
     "resetMinutes": "{{n}}m",
+    "resetDH": "{{d}}d {{h}}h",
+    "resetHM": "{{h}}h {{m}}m",
     "resetSoon": "soon"
   }
 }

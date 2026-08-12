@@ -22,14 +22,28 @@ function getBarClass(pct: number): string {
   return "is-ok";
 }
 
-// Compact countdown: show only the largest unit (3天 / 5时 / 25分 / 即将).
+// Compact countdown: two-level precision (1天3小时 / 2小时58分钟 / 25分钟 / 即将).
 function formatCountdown(ms: number, now: number, t: (k: string, o?: Record<string, unknown>) => string): string {
   const diffMs = ms - now;
   if (diffMs <= 0) return t("usage.resetSoon");
-  const min = Math.floor(diffMs / 60000);
-  if (min >= 1440) return t("usage.resetDays", { n: Math.floor(min / 1440) });
-  if (min >= 60) return t("usage.resetHours", { n: Math.floor(min / 60) });
-  return t("usage.resetMinutes", { n: min });
+  const totalMin = Math.floor(diffMs / 60000);
+  if (totalMin >= 1440) {
+    const d = Math.floor(totalMin / 1440);
+    // Beyond 7 days, only show whole days (skip hours/minutes for readability).
+    if (d > 7) return t("usage.resetDays", { n: d });
+    const h = Math.floor((totalMin % 1440) / 60);
+    return h > 0
+      ? t("usage.resetDH", { d, h })
+      : t("usage.resetDays", { n: d });
+  }
+  if (totalMin >= 60) {
+    const h = Math.floor(totalMin / 60);
+    const m = totalMin % 60;
+    return m > 0
+      ? t("usage.resetHM", { h, m })
+      : t("usage.resetHours", { n: h });
+  }
+  return t("usage.resetMinutes", { n: totalMin });
 }
 
 // Exact ISO-ish time for tooltip: YYYY-MM-DD HH:mm

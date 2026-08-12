@@ -147,6 +147,8 @@
     "resetDays": "{{n}}天",
     "resetHours": "{{n}}小时",
     "resetMinutes": "{{n}}分钟",
+    "resetDH": "{{d}}天{{h}}小时",
+    "resetHM": "{{h}}小时{{m}}分钟",
     "resetSoon": "即将"
   }
 }

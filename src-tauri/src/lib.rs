@@ -15,39 +15,44 @@ pub fn run() {
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
         .setup(|app| {
-            let about_item =
-                MenuItemBuilder::with_id("macos_about", "About LLM Switch").build(app)?;
+            // The native menu bar is only set on macOS; on Windows/Linux the
+            // window would otherwise show an unwanted menu bar.
+            #[cfg(target_os = "macos")]
+            {
+                let about_item =
+                    MenuItemBuilder::with_id("macos_about", "About LLM Switch").build(app)?;
 
-            let app_menu = SubmenuBuilder::new(app, "LLM Switch")
-                .item(&about_item)
-                .separator()
-                .hide()
-                .quit()
-                .build()?;
+                let app_menu = SubmenuBuilder::new(app, "LLM Switch")
+                    .item(&about_item)
+                    .separator()
+                    .hide()
+                    .quit()
+                    .build()?;
 
-            let edit_menu = SubmenuBuilder::new(app, "Edit")
-                .undo()
-                .redo()
-                .separator()
-                .cut()
-                .copy()
-                .paste()
-                .select_all()
-                .build()?;
+                let edit_menu = SubmenuBuilder::new(app, "Edit")
+                    .undo()
+                    .redo()
+                    .separator()
+                    .cut()
+                    .copy()
+                    .paste()
+                    .select_all()
+                    .build()?;
 
-            let menu = MenuBuilder::new(app)
-                .item(&app_menu)
-                .item(&edit_menu)
-                .build()?;
+                let menu = MenuBuilder::new(app)
+                    .item(&app_menu)
+                    .item(&edit_menu)
+                    .build()?;
 
-            app.set_menu(menu)?;
+                app.set_menu(menu)?;
 
-            let app_handle = app.handle().clone();
-            app.on_menu_event(move |_app, event| {
-                if event.id().as_ref() == "macos_about" {
-                    let _ = app_handle.emit("show-about", ());
-                }
-            });
+                let app_handle = app.handle().clone();
+                app.on_menu_event(move |_app, event| {
+                    if event.id().as_ref() == "macos_about" {
+                        let _ = app_handle.emit("show-about", ());
+                    }
+                });
+            }
 
             // Hide window on close instead of destroying it
             let window = app.get_webview_window("main").unwrap();

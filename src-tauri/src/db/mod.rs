@@ -62,5 +62,17 @@ async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
             return Err(e);
         }
     }
+    // Migration 005: add activation_time for scheduled activation
+    let m5 = sqlx::raw_sql("ALTER TABLE profiles ADD COLUMN activation_time TEXT")
+        .execute(pool)
+        .await;
+    if let Err(e) = m5 {
+        if !e.to_string().contains("duplicate column name") {
+            return Err(e);
+        }
+    }
+    // Migration 006: activation_log table
+    let m6 = include_str!("../../migrations/006_activation_log.sql");
+    sqlx::raw_sql(m6).execute(pool).await?;
     Ok(())
 }

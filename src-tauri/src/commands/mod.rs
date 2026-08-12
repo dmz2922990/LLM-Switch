@@ -3,7 +3,7 @@ use crate::models::host::{CreateHost, UpdateHost};
 use crate::models::profile::Profile;
 use crate::models::profile::{CopyProfile, CreateProfile, RenameProfile};
 use crate::models::sync_history::SyncHistory;
-use crate::services::{host_service, profile_service, sync_history_service, sync_service, usage_service};
+use crate::services::{activation_service, host_service, profile_service, sync_history_service, sync_service, usage_service};
 use sqlx::SqlitePool;
 
 #[tauri::command]
@@ -256,4 +256,21 @@ pub async fn get_usage_info(base_url: String, auth_token: String) -> Result<Opti
     usage_service::get_usage(&base_url, &auth_token)
         .await
         .map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub async fn update_activation_time(
+    pool: tauri::State<'_, SqlitePool>,
+    id: String,
+    activation_time: Option<String>,
+) -> Result<Profile, String> {
+    profile_service::update_activation_time(&pool, &id, activation_time.as_deref()).await
+}
+
+#[tauri::command]
+pub async fn list_activation_log(
+    pool: tauri::State<'_, SqlitePool>,
+    profile_id: Option<String>,
+) -> Result<Vec<crate::models::activation_log::ActivationLog>, String> {
+    activation_service::list_log(&pool, profile_id.as_deref()).await
 }

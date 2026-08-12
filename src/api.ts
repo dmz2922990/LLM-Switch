@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { Profile, Host, SyncHistory, SyncResult, UsageInfo } from "./types";
+import type { Profile, Host, SyncHistory, SyncResult, UsageInfo, ActivationLog } from "./types";
 
 // Profile API
 export const api = {
@@ -55,5 +55,11 @@ export const api = {
   usage: {
     get: (baseUrl: string, authToken: string) =>
       invoke<UsageInfo | null>("get_usage_info", { baseUrl, authToken }),
+  },
+  activation: {
+    updateTime: (id: string, time: string | null) =>
+      invoke<Profile>("update_activation_time", { id, activationTime: time }),
+    listLog: (profileId?: string) =>
+      invoke<ActivationLog[]>("list_activation_log", { profileId }),
   },
 };

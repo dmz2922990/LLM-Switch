@@ -20,8 +20,16 @@
     "tabs": {
       "hosts": "Hosts",
       "sync": "Sync",
+      "activation": "Activation",
       "about": "About"
     }
+  },
+  "activation": {
+    "configTitle": "Scheduled Activation",
+    "timeHint": "Auto-send a message at this time daily to trigger quota reset (only when app is running)",
+    "toggleHint": "Enable/disable scheduled activation",
+    "logTitle": "Activation History",
+    "noRecords": "No activation records"
   },
   "syncHost": {
     "title": "Select Sync Host",

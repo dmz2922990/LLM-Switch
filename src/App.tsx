@@ -18,7 +18,7 @@ import { ConfirmDialog } from "./components/ConfirmDialog";
 import { IconPlus } from "./components/icons";
 import type { UpdateStatus } from "./components/AboutPanel";
 
-type GlobalTab = "hosts" | "sync" | "about";
+type GlobalTab = "hosts" | "sync" | "activation" | "about";
 
 function App() {
   const { t } = useTranslation();

@@ -1,3 +1,4 @@
+pub mod activation_service;
 pub mod crypto;
 pub mod host_service;
 pub mod profile_service;

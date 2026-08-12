@@ -104,6 +104,62 @@ pub fn run() {
                         }
                     }
                 });
+
+                // Activation scheduler — checks every 60s for profiles to activate
+                let act_handle = handle.clone();
+                tauri::async_runtime::spawn(async move {
+                    use std::collections::HashSet;
+                    let mut triggered: HashSet<String> = HashSet::new();
+                    let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
+                    loop {
+                        interval.tick().await;
+                        let pool = match act_handle.try_state::<sqlx::SqlitePool>() {
+                            Some(s) => s,
+                            None => continue,
+                        };
+                        let now = chrono::Local::now();
+                        let date_str = now.format("%Y-%m-%d").to_string();
+                        let hhmm = now.format("%H:%M").to_string();
+                        let profiles = match sqlx::query_as::<_, crate::models::profile::Profile>(
+                            "SELECT * FROM profiles WHERE activation_time IS NOT NULL ORDER BY sort_order ASC",
+                        )
+                        .fetch_all(&*pool)
+                        .await
+                        {
+                            Ok(p) => p,
+                            Err(_) => continue,
+                        };
+                        for profile in profiles {
+                            if profile.activation_time.as_deref() != Some(hhmm.as_str()) {
+                                continue;
+                            }
+                            let key = format!("{}|{}|{}", date_str, hhmm, profile.id);
+                            if !triggered.insert(key) {
+                                continue;
+                            }
+                            let pool_clone = pool.inner().clone();
+                            let act_h = act_handle.clone();
+                            tauri::async_runtime::spawn(async move {
+                                let result = services::activation_service::send_activation(&profile).await;
+                                match result {
+                                    Ok(http_status) => {
+                                        let _ = services::activation_service::record_log(
+                                            &pool_clone, &profile.id, "success",
+                                            None, Some(http_status as i64),
+                                        ).await;
+                                    }
+                                    Err((msg, http_status)) => {
+                                        let _ = services::activation_service::record_log(
+                                            &pool_clone, &profile.id, "failed",
+                                            Some(&msg), http_status,
+                                        ).await;
+                                    }
+                                }
+                                let _ = act_h.emit("activation-completed", ());
+                            });
+                        }
+                    }
+                });
             });
             Ok(())
         })
@@ -135,6 +191,8 @@ pub fn run() {
             commands::refresh_tray_menu,
             commands::update_tray_labels,
             commands::get_usage_info,
+            commands::update_activation_time,
+            commands::list_activation_log,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

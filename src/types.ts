@@ -5,6 +5,7 @@ export interface Profile {
   is_active: boolean;
   sort_order: number;
   sync_keys: string;
+  activation_time: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -53,4 +54,13 @@ export interface QuotaInfo {
 export interface UsageInfo {
   provider_name: string;
   quotas: QuotaInfo[];
+}
+
+export interface ActivationLog {
+  id: string;
+  profile_id: string;
+  activated_at: string;
+  status: string;
+  error_message: string | null;
+  http_status: number | null;
 }

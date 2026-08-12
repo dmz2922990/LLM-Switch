@@ -243,3 +243,20 @@ pub async fn reorder(pool: &SqlitePool, ordered_ids: &[String]) -> Result<(), St
     tx.commit().await.map_err(|e| format!("Failed to commit reorder: {}", e))?;
     Ok(())
 }
+
+pub async fn update_activation_time(
+    pool: &SqlitePool,
+    id: &str,
+    activation_time: Option<&str>,
+) -> Result<Profile, String> {
+    let now = chrono::Utc::now().to_rfc3339();
+    sqlx::query_as::<_, Profile>(
+        "UPDATE profiles SET activation_time = ?, updated_at = ? WHERE id = ? RETURNING *",
+    )
+    .bind(activation_time)
+    .bind(&now)
+    .bind(id)
+    .fetch_one(pool)
+    .await
+    .map_err(|e| format!("Failed to update activation_time: {}", e))
+}

@@ -20,8 +20,16 @@
     "tabs": {
       "hosts": "主机管理",
       "sync": "远程同步",
+      "activation": "定时激活",
       "about": "关于"
     }
+  },
+  "activation": {
+    "configTitle": "定时激活配置",
+    "timeHint": "每天此时间自动发送消息触发配额重置（仅 app 运行时生效）",
+    "toggleHint": "启用/关闭定时激活",
+    "logTitle": "激活历史",
+    "noRecords": "暂无激活记录"
   },
   "syncHost": {
     "title": "选择同步主机",

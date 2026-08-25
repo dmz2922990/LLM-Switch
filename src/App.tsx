@@ -26,6 +26,7 @@ function App() {
   const [hosts, setHosts] = useState<Host[]>([]);
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadFailed, setLoadFailed] = useState(false);
   const [globalDialog, setGlobalDialog] = useState<{ open: boolean; tab: GlobalTab }>({ open: false, tab: "hosts" });
   const [settingsProfileId, setSettingsProfileId] = useState<string | null>(null);
   const [syncProfileId, setSyncProfileId] = useState<string | null>(null);
@@ -81,8 +82,10 @@ function App() {
         setSelectedProfileId(p.find((pr) => pr.is_active)?.id ?? p[0].id);
       }
       invoke("refresh_tray_menu").catch(() => {});
+      setLoadFailed(false);
     } catch (e) {
       console.error("Failed to load data:", e);
+      setLoadFailed(true);
     } finally {
       setLoading(false);
     }
@@ -123,11 +126,13 @@ function App() {
     const unlistenSwitched = listen("profile-switched", () => refresh());
     const unlistenFileChanged = listen("settings-file-changed", () => refresh());
     const unlistenActivation = listen("activation-completed", () => refresh());
+    const unlistenDbReady = listen("db-ready", () => refresh());
     return () => {
       unlistenAbout.then((fn) => fn());
       unlistenSwitched.then((fn) => fn());
       unlistenFileChanged.then((fn) => fn());
       unlistenActivation.then((fn) => fn());
+      unlistenDbReady.then((fn) => fn());
     };
   }, [refresh]);
 
@@ -317,6 +322,15 @@ function App() {
 
   if (loading) {
     return <div className="empty-state"><p>{t("common.loading")}</p></div>;
+  }
+
+  if (loadFailed && profiles.length === 0) {
+    return (
+      <div className="empty-state">
+        <p>{t("common.loadFailed")}</p>
+        <button className="btn btn--primary" onClick={() => refresh()}>{t("common.retry")}</button>
+      </div>
+    );
   }
 
   return (

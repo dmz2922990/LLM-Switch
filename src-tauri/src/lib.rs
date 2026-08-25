@@ -92,18 +92,16 @@ pub fn run() {
             });
 
             let handle = app.handle().clone();
-
-            // Initialize database synchronously so pool is managed before commands can be called.
-            // On Windows, async init inside spawn may race with frontend command invocations.
-            let data_dir = handle
-                .path()
-                .app_data_dir()
-                .expect("Failed to get app data dir");
-            let pool = tauri::async_runtime::block_on(db::init_pool(&data_dir))
-                .expect("Failed to init database");
-            handle.manage(pool.clone());
-
             tauri::async_runtime::spawn(async move {
+                let data_dir = handle
+                    .path()
+                    .app_data_dir()
+                    .expect("Failed to get app data dir");
+                let pool = db::init_pool(&data_dir)
+                    .await
+                    .expect("Failed to init database");
+                handle.manage(pool.clone());
+                let _ = handle.emit("db-ready", ());
 
                 if let Err(e) = services::profile_service::ensure_default_profile(&pool).await {
                     eprintln!("Failed to create default profile: {}", e);

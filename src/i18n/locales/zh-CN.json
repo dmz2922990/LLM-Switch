@@ -11,6 +11,8 @@
     "success": "成功",
     "failed": "失败",
     "loading": "加载中...",
+    "loadFailed": "数据加载失败，正在重试…",
+    "retry": "重试",
     "themeToggle": "切换主题",
     "settings": "设置",
     "sync": "同步"

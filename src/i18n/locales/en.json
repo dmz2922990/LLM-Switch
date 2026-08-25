@@ -11,6 +11,8 @@
     "success": "Success",
     "failed": "Failed",
     "loading": "Loading...",
+    "loadFailed": "Failed to load data. Retrying…",
+    "retry": "Retry",
     "themeToggle": "Toggle theme",
     "settings": "Settings",
     "sync": "Sync"

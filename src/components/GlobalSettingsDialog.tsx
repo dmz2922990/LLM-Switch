@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import type { Host, Profile } from "../types";
+import type { Host, Profile, ReminderConfig } from "../types";
 import { Dialog } from "./Dialog";
 import { HostManager } from "./HostManager";
 import { SyncHistoryList } from "./SyncHistoryList";
@@ -8,8 +8,10 @@ import { SyncScopeEditor } from "./SyncScopeEditor";
 import { AboutPanel, type UpdateStatus } from "./AboutPanel";
 import { ActivationConfigList } from "./ActivationConfigList";
 import { ActivationHistoryList } from "./ActivationHistoryList";
+import { ReminderConfigList } from "./ReminderConfigList";
+import { api } from "../api";
 
-type TabId = "hosts" | "sync" | "activation" | "about";
+type TabId = "hosts" | "sync" | "activation" | "reminder" | "about";
 
 interface Props {
   tab: TabId;
@@ -30,6 +32,16 @@ export function GlobalSettingsDialog({
 }: Props) {
   const { t } = useTranslation();
   const [activeTab, setActiveTab] = useState<TabId>(tab);
+  const [reminderConfigs, setReminderConfigs] = useState<ReminderConfig[]>([]);
+
+  useEffect(() => {
+    api.reminder.listConfigs().then(setReminderConfigs).catch(() => {});
+  }, []);
+
+  const refreshReminders = () => {
+    api.reminder.listConfigs().then(setReminderConfigs).catch(() => {});
+    onRefreshHosts();
+  };
 
   return (
     <Dialog
@@ -46,6 +58,9 @@ export function GlobalSettingsDialog({
         </button>
         <button className={`gst-tab${activeTab === "activation" ? " active" : ""}`} onClick={() => setActiveTab("activation")}>
           {t("globalSettings.tabs.activation")}
+        </button>
+        <button className={`gst-tab${activeTab === "reminder" ? " active" : ""}`} onClick={() => setActiveTab("reminder")}>
+          {t("globalSettings.tabs.reminder")}
         </button>
         <button className={`gst-tab${activeTab === "about" ? " active" : ""}`} onClick={() => setActiveTab("about")}>
           {t("globalSettings.tabs.about")}
@@ -78,6 +93,13 @@ export function GlobalSettingsDialog({
             <div className="sync-tab-divider" />
             <div className="activation-section-title">{t("activation.logTitle")}</div>
             <ActivationHistoryList profiles={profiles} />
+          </div>
+        )}
+        {activeTab === "reminder" && (
+          <div className="activation-tab">
+            <div className="activation-section-title">{t("reminder.configTitle")}</div>
+            <p className="scope-hint" style={{ padding: "0 20px" }}>{t("reminder.timeHint")}</p>
+            <ReminderConfigList configs={reminderConfigs} onChanged={refreshReminders} />
           </div>
         )}
         {activeTab === "about" && (

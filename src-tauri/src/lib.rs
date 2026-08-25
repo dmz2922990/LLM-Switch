@@ -1,6 +1,32 @@
 use tauri::menu::{MenuBuilder, MenuItemBuilder, SubmenuBuilder};
 use tauri::Emitter;
 use tauri::Manager;
+use tauri_plugin_notification::NotificationExt;
+
+/// Send a system notification. On macOS, uses osascript (UNUserNotificationCenter)
+/// because notify-rust's NSUserNotificationCenter is deprecated and broken on macOS 15+.
+#[cfg(target_os = "macos")]
+fn send_notification(title: &str, body: &str) {
+    let script = format!(
+        r#"display notification "{}" with title "{}""#,
+        body.replace('"', r#"\""#),
+        title.replace('"', r#"\""#),
+    );
+    let result = std::process::Command::new("osascript")
+        .arg("-e")
+        .arg(&script)
+        .output();
+    match result {
+        Ok(o) if o.status.success() => eprintln!("[reminder] osascript notification sent"),
+        Ok(o) => eprintln!("[reminder] osascript failed: {}", String::from_utf8_lossy(&o.stderr)),
+        Err(e) => eprintln!("[reminder] osascript spawn failed: {}", e),
+    }
+}
+
+#[cfg(not(target_os = "macos"))]
+fn send_notification(_title: &str, _body: &str) {
+    // Non-macOS: handled inline with AppHandle in the scheduler
+}
 
 mod commands;
 mod db;
@@ -14,6 +40,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_opener::init())
+        .plugin(tauri_plugin_notification::init())
         .setup(|app| {
             // The native menu bar is only set on macOS; on Windows/Linux the
             // window would otherwise show an unwanted menu bar.
@@ -160,6 +187,81 @@ pub fn run() {
                         }
                     }
                 });
+
+                // Reminder scheduler — checks every 60s for reminder triggers
+                let _rem_handle = handle.clone();
+                tauri::async_runtime::spawn(async move {
+                    use std::collections::HashSet;
+                    let mut triggered: HashSet<String> = HashSet::new();
+                    let mut interval = tokio::time::interval(std::time::Duration::from_secs(60));
+                    loop {
+                        interval.tick().await;
+                        let pool = match _rem_handle.try_state::<sqlx::SqlitePool>() {
+                            Some(s) => s,
+                            None => continue,
+                        };
+                        let now = chrono::Local::now();
+                        let date_str = now.format("%Y-%m-%d").to_string();
+                        let hhmm = now.format("%H:%M").to_string();
+                        let weekday = now.format("%u").to_string();
+                        let configs = match services::reminder_service::list_configs(&pool).await {
+                            Ok(c) => {
+                                #[cfg(not(target_os = "macos"))]
+                                {
+                                    let enabled: Vec<_> = c.iter().filter(|x| x.enabled).collect();
+                                    if !enabled.is_empty() {
+                                        eprintln!("[reminder] tick at {} weekday={} — {} enabled configs", hhmm, weekday, enabled.len());
+                                    }
+                                }
+                                c
+                            }
+                            Err(e) => { eprintln!("[reminder] list_configs error: {}", e); continue; }
+                        };
+                        for cfg in &configs {
+                            if !cfg.enabled { continue; }
+                            if !cfg.days_of_week.split(',').any(|d| d.trim() == weekday.as_str()) { continue; }
+                            let starts = [
+                                cfg.time1_start.as_deref(),
+                                cfg.time2_start.as_deref(),
+                            ];
+                            let ends = [
+                                cfg.time1_end.as_deref(),
+                                cfg.time2_end.as_deref(),
+                            ];
+                            for (i, start) in starts.iter().enumerate() {
+                                if let Some(s) = start {
+                                    if *s == hhmm.as_str() {
+                                        let key = format!("{}|{}|{}", date_str, hhmm, cfg.vendor_key);
+                                        if !triggered.insert(key) { continue; }
+                                        let body = if let Some(e) = ends[i] {
+                                            format!("{}: {} – {}", cfg.vendor_name, s, e)
+                                        } else {
+                                            format!("{}", cfg.vendor_name)
+                                        };
+                                        #[cfg(target_os = "macos")]
+                                        {
+                                            send_notification("波峰时段开始", &body);
+                                        }
+                                        #[cfg(not(target_os = "macos"))]
+                                        {
+                                            eprintln!("[reminder] triggering notification for {} at {}: {}", cfg.vendor_key, hhmm, body);
+                                            match _rem_handle
+                                                .notification()
+                                                .builder()
+                                                .title("波峰时段开始")
+                                                .body(&body)
+                                                .show()
+                                            {
+                                                Ok(()) => eprintln!("[reminder] notification sent successfully"),
+                                                Err(e) => eprintln!("[reminder] notification failed: {}", e),
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
             });
             Ok(())
         })
@@ -193,6 +295,8 @@ pub fn run() {
             commands::get_usage_info,
             commands::update_activation_time,
             commands::list_activation_log,
+            commands::list_reminder_configs,
+            commands::update_reminder_config,
         ])
         .build(tauri::generate_context!())
         .expect("error while building tauri application")

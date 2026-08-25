@@ -1,5 +1,5 @@
 import { invoke } from "@tauri-apps/api/core";
-import type { Profile, Host, SyncHistory, SyncResult, UsageInfo, ActivationLog } from "./types";
+import type { Profile, Host, SyncHistory, SyncResult, UsageInfo, ActivationLog, ReminderConfig } from "./types";
 
 // Profile API
 export const api = {
@@ -61,5 +61,10 @@ export const api = {
       invoke<Profile>("update_activation_time", { id, activationTime: time }),
     listLog: (profileId?: string) =>
       invoke<ActivationLog[]>("list_activation_log", { profileId }),
+  },
+  reminder: {
+    listConfigs: () => invoke<ReminderConfig[]>("list_reminder_configs"),
+    updateConfig: (id: string, enabled: boolean, time1Start: string | null, time1End: string | null, time2Start: string | null, time2End: string | null, daysOfWeek: string, autoClose: boolean, autoCloseSeconds: number) =>
+      invoke<ReminderConfig>("update_reminder_config", { id, enabled, time1Start, time1End, time2Start, time2End, daysOfWeek, autoClose, autoCloseSeconds }),
   },
 };

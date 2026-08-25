@@ -46,6 +46,7 @@
   --link-soft: rgba(126, 231, 135, 0.1);
   --danger-soft: rgba(229, 83, 75, 0.12);
   --warn-soft: rgba(227, 179, 65, 0.12);
+  --tx-soft: rgba(242, 166, 90, 0.12);
   --info-soft: rgba(90, 169, 255, 0.12);
 
   /* overlays & shadows */
@@ -106,6 +107,7 @@ html[data-theme="light"] {
   --link-soft: rgba(24, 122, 67, 0.1);
   --danger-soft: rgba(200, 57, 47, 0.1);
   --warn-soft: rgba(154, 107, 12, 0.12);
+  --tx-soft: rgba(176, 106, 22, 0.12);
   --info-soft: rgba(26, 107, 214, 0.1);
 
   --overlay: rgba(40, 35, 25, 0.42);
@@ -402,6 +404,26 @@ select {
 }
 .badge--link {
   cursor: pointer;
+}
+
+.badge--peak {
+  color: var(--tx);
+  background: var(--tx-soft);
+  border: 1px solid var(--tx);
+  cursor: default;
+}
+
+.peak-badge-icon {
+  width: 12px;
+  height: 12px;
+  display: block;
+  mask-size: contain;
+  mask-repeat: no-repeat;
+  mask-position: center;
+  -webkit-mask-size: contain;
+  -webkit-mask-repeat: no-repeat;
+  -webkit-mask-position: center;
+  background-color: var(--tx);
 }
 
 @keyframes sync-flash-info {
@@ -929,6 +951,86 @@ select {
   font-family: var(--font-mono);
   line-height: 1.5;
   color: var(--ink-dim);
+}
+
+/* Reminder config */
+.reminder-config-list {
+  display: flex;
+  flex-direction: column;
+  padding: 8px 20px;
+  gap: 10px;
+  flex: 1;
+  overflow-y: auto;
+}
+.reminder-card {
+  background: var(--surface);
+  border: 1px solid var(--hairline);
+  border-radius: var(--r-md);
+  padding: 10px 14px;
+}
+.reminder-card-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.reminder-vendor-name {
+  font-size: var(--fs-sm);
+  font-weight: 600;
+  color: var(--ink);
+}
+.reminder-vendor-key {
+  font-size: var(--fs-xs);
+  color: var(--ink-faint);
+  font-family: var(--font-mono);
+  flex: 1;
+}
+.reminder-card-body {
+  margin-top: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.reminder-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.reminder-label {
+  font-size: var(--fs-xs);
+  color: var(--ink-dim);
+  min-width: 40px;
+}
+.reminder-time-input {
+  width: auto;
+  font-size: var(--fs-sm);
+  padding: 3px 6px;
+}
+.reminder-days {
+  display: flex;
+  gap: 4px;
+}
+.reminder-day-btn {
+  width: 26px;
+  height: 26px;
+  border-radius: var(--r-sm);
+  border: 1px solid var(--hairline);
+  background: var(--surface-2);
+  color: var(--ink-dim);
+  font-size: var(--fs-xs);
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+.reminder-day-btn.is-on {
+  background: var(--rx);
+  color: #0a1413;
+  border-color: var(--rx);
+}
+.reminder-select {
+  width: auto;
+  font-size: var(--fs-sm);
+  padding: 3px 6px;
 }
 
 /* Sync tab: profile selector + scope + history */

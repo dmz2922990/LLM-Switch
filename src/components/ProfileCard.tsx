@@ -1,10 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useTranslation } from "react-i18next";
-import type { Profile, SyncHistory } from "../types";
+import type { Profile, ReminderConfig, SyncHistory } from "../types";
+import { getPeakInfo } from "../lib/reminder";
+import type { PeakInfo } from "../lib/reminder";
 import { api } from "../api";
 import { UsageDisplay } from "./UsageDisplay";
 import { formatRelativeTime } from "../lib/format";
 import syncIcon from "../img/sync-icon.png";
+import peakIcon from "../img/peak-icon.png";
 import {
   IconCheck, IconChevronDown, IconChevronUp, IconCopy, IconPencil, IconRefresh, IconSettings, IconX,
 } from "./icons";
@@ -27,16 +30,26 @@ interface Props {
   latestSync: SyncHistory | null;
   flash: boolean;
   hostNames: Record<string, string>;
+  reminderConfigs: ReminderConfig[];
 }
 
 export function ProfileCard({
   profile, selected, index, count, onSelect, onSwitchActive,
   onOpenSettings, onSync, onCopy, onDelete, onMove, onRenamed, onOpenSyncHistory, syncing,
-  latestSync, flash, hostNames,
+  latestSync, flash, hostNames, reminderConfigs,
 }: Props) {
   const { t } = useTranslation();
   const [renaming, setRenaming] = useState(false);
   const [renameVal, setRenameVal] = useState(profile.name);
+  const [now, setNow] = useState(() => new Date());
+
+  // Refresh current time every 60s to update peak badge
+  useEffect(() => {
+    const timer = setInterval(() => setNow(new Date()), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const peak: PeakInfo = getPeakInfo(profile, reminderConfigs, now);
 
   const commitRename = async () => {
     setRenaming(false);
@@ -74,6 +87,14 @@ export function ProfileCard({
           </span>
         )}
         <div className="profile-card-actions">
+          {peak.inPeak && (
+            <span className="badge badge--peak" title={peak.label ? `${t("reminder.peakPeriod")}: ${peak.label}` : t("reminder.peakPeriod")}>
+              <span className="peak-badge-icon" style={{
+                maskImage: `url(${peakIcon})`,
+                WebkitMaskImage: `url(${peakIcon})`,
+              }} />
+            </span>
+          )}
           {profile.is_active ? (
             <span className="badge badge--link">{t("sidebar.active")}</span>
           ) : (

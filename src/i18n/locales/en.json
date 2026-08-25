@@ -21,6 +21,7 @@
       "hosts": "Hosts",
       "sync": "Sync",
       "activation": "Activation",
+      "reminder": "Reminder",
       "about": "About"
     }
   },
@@ -30,6 +31,16 @@
     "toggleHint": "Enable/disable scheduled activation",
     "logTitle": "Activation History",
     "noRecords": "No activation records"
+  },
+  "reminder": {
+    "configTitle": "Reminder Config",
+    "timeHint": "Pop up a reminder when peak hours start (only when app is running)",
+    "time": "Time",
+    "days": "Repeat",
+    "autoClose": "Auto close",
+    "seconds": "s",
+    "peakStart": "peak hours start",
+    "peakPeriod": "Currently in peak period"
   },
   "syncHost": {
     "title": "Select Sync Host",

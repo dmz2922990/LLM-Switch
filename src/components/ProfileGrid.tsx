@@ -1,5 +1,5 @@
 import { useTranslation } from "react-i18next";
-import type { Profile, SyncHistory } from "../types";
+import type { Profile, ReminderConfig, SyncHistory } from "../types";
 import { ProfileCard } from "./ProfileCard";
 
 interface Props {
@@ -19,12 +19,13 @@ interface Props {
   latestSyncId: string | null;
   flashProfileId: string | null;
   hostNames: Record<string, string>;
+  reminderConfigs: ReminderConfig[];
 }
 
 export function ProfileGrid({
   profiles, selectedId, onSelect, onSwitchActive, onOpenSettings,
   onSync, onCopy, onDelete, onReorder, onRenamed, onOpenSyncHistory, syncingId,
-  syncSummaries, latestSyncId, flashProfileId, hostNames,
+  syncSummaries, latestSyncId, flashProfileId, hostNames, reminderConfigs,
 }: Props) {
   const { t } = useTranslation();
 
@@ -63,6 +64,7 @@ export function ProfileGrid({
           latestSync={latestSyncId === p.id ? (syncSummaries[p.id] ?? null) : null}
           flash={flashProfileId === p.id}
           hostNames={hostNames}
+          reminderConfigs={reminderConfigs}
         />
       ))}
     </div>

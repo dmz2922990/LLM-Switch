@@ -3,7 +3,7 @@ use crate::models::host::{CreateHost, UpdateHost};
 use crate::models::profile::Profile;
 use crate::models::profile::{CopyProfile, CreateProfile, RenameProfile};
 use crate::models::sync_history::SyncHistory;
-use crate::services::{activation_service, host_service, profile_service, sync_history_service, sync_service, usage_service};
+use crate::services::{activation_service, host_service, profile_service, reminder_service, sync_history_service, sync_service, usage_service};
 use sqlx::SqlitePool;
 
 #[tauri::command]
@@ -273,4 +273,26 @@ pub async fn list_activation_log(
     profile_id: Option<String>,
 ) -> Result<Vec<crate::models::activation_log::ActivationLog>, String> {
     activation_service::list_log(&pool, profile_id.as_deref()).await
+}
+
+#[tauri::command]
+pub async fn list_reminder_configs(pool: tauri::State<'_, SqlitePool>) -> Result<Vec<crate::models::reminder::ReminderConfig>, String> {
+    reminder_service::list_configs(&pool).await
+}
+
+#[tauri::command]
+#[allow(clippy::too_many_arguments)]
+pub async fn update_reminder_config(
+    pool: tauri::State<'_, SqlitePool>,
+    id: String,
+    enabled: bool,
+    time1_start: Option<String>,
+    time1_end: Option<String>,
+    time2_start: Option<String>,
+    time2_end: Option<String>,
+    days_of_week: String,
+    auto_close: bool,
+    auto_close_seconds: i64,
+) -> Result<crate::models::reminder::ReminderConfig, String> {
+    reminder_service::update_config(&pool, &id, enabled, time1_start.as_deref(), time1_end.as_deref(), time2_start.as_deref(), time2_end.as_deref(), &days_of_week, auto_close, auto_close_seconds).await
 }

@@ -5,7 +5,7 @@ import { getVersion } from "@tauri-apps/api/app";
 import { listen } from "@tauri-apps/api/event";
 import { check, type Update } from "@tauri-apps/plugin-updater";
 import { relaunch } from "@tauri-apps/plugin-process";
-import type { Profile, Host, SyncHistory } from "./types";
+import type { Profile, Host, ReminderConfig, SyncHistory } from "./types";
 import { api } from "./api";
 import i18n from "./i18n";
 import { TopBar } from "./components/TopBar";
@@ -18,7 +18,7 @@ import { ConfirmDialog } from "./components/ConfirmDialog";
 import { IconPlus } from "./components/icons";
 import type { UpdateStatus } from "./components/AboutPanel";
 
-type GlobalTab = "hosts" | "sync" | "activation" | "about";
+type GlobalTab = "hosts" | "sync" | "activation" | "reminder" | "about";
 
 function App() {
   const { t } = useTranslation();
@@ -42,6 +42,7 @@ function App() {
   const [syncSummaries, setSyncSummaries] = useState<Record<string, SyncHistory>>({});
   const [flashProfileId, setFlashProfileId] = useState<string | null>(null);
   const flashTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const [reminderConfigs, setReminderConfigs] = useState<ReminderConfig[]>([]);
 
   const hostNames = useMemo(
     () => Object.fromEntries(hosts.map((h) => [h.id, h.name])),
@@ -61,9 +62,15 @@ function App() {
 
   const refresh = useCallback(async () => {
     try {
-      const [p, h, hist] = await Promise.all([api.profile.list(), api.host.list(), api.sync.history()]);
+      const [p, h, hist, rem] = await Promise.all([
+        api.profile.list(),
+        api.host.list(),
+        api.sync.history(),
+        api.reminder.listConfigs(),
+      ]);
       setProfiles(p);
       setHosts(h);
+      setReminderConfigs(rem);
       // history is newest-first; first record per profile is its latest sync
       const map: Record<string, SyncHistory> = {};
       for (const rec of hist) if (!map[rec.profile_id]) map[rec.profile_id] = rec;
@@ -115,10 +122,12 @@ function App() {
     const unlistenAbout = listen("show-about", () => setGlobalDialog({ open: true, tab: "about" }));
     const unlistenSwitched = listen("profile-switched", () => refresh());
     const unlistenFileChanged = listen("settings-file-changed", () => refresh());
+    const unlistenActivation = listen("activation-completed", () => refresh());
     return () => {
       unlistenAbout.then((fn) => fn());
       unlistenSwitched.then((fn) => fn());
       unlistenFileChanged.then((fn) => fn());
+      unlistenActivation.then((fn) => fn());
     };
   }, [refresh]);
 
@@ -331,6 +340,7 @@ function App() {
           latestSyncId={latestSyncId}
           flashProfileId={flashProfileId}
           hostNames={hostNames}
+          reminderConfigs={reminderConfigs}
           onOpenSyncHistory={handleOpenSyncHistory}
         />
       </main>

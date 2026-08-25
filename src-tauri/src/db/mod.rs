@@ -74,5 +74,19 @@ async fn run_migrations(pool: &SqlitePool) -> Result<(), sqlx::Error> {
     // Migration 006: activation_log table
     let m6 = include_str!("../../migrations/006_activation_log.sql");
     sqlx::raw_sql(m6).execute(pool).await?;
+    // Migration 007: reminder_config table
+    let m7 = include_str!("../../migrations/007_reminder.sql");
+    sqlx::raw_sql(m7).execute(pool).await?;
+    // Migration 008: reminder time ranges
+    let m8 = include_str!("../../migrations/008_reminder_time_ranges.sql");
+    let m8_result = sqlx::raw_sql(m8).execute(pool).await;
+    if let Err(e) = m8_result {
+        if !e.to_string().contains("duplicate column name") {
+            return Err(e);
+        }
+    }
+    // Migration 009: reminder defaults (bigmodel.cn enabled, 14:00-18:00)
+    let m9 = include_str!("../../migrations/009_reminder_defaults.sql");
+    sqlx::raw_sql(m9).execute(pool).await?;
     Ok(())
 }

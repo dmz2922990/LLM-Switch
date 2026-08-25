@@ -1,0 +1,2 @@
+-- Set bigmodel.cn enabled by default with peak hours 14:00-18:00
+UPDATE reminder_config SET enabled = 1, time1_start = '14:00', time1_end = '18:00', updated_at = datetime('now') WHERE vendor_key = 'bigmodel.cn' AND time1_start IS NULL;

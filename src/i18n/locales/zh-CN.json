@@ -21,6 +21,7 @@
       "hosts": "主机管理",
       "sync": "远程同步",
       "activation": "定时激活",
+      "reminder": "提醒",
       "about": "关于"
     }
   },
@@ -30,6 +31,16 @@
     "toggleHint": "启用/关闭定时激活",
     "logTitle": "激活历史",
     "noRecords": "暂无激活记录"
+  },
+  "reminder": {
+    "configTitle": "提醒配置",
+    "timeHint": "到点弹窗提醒波峰开始（仅 app 运行时生效）",
+    "time": "时间",
+    "days": "重复",
+    "autoClose": "自动关闭",
+    "seconds": "秒",
+    "peakStart": "波峰时段开始",
+    "peakPeriod": "当前处于波峰时段"
   },
   "syncHost": {
     "title": "选择同步主机",

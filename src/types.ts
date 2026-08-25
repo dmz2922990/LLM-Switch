@@ -64,3 +64,19 @@ export interface ActivationLog {
   error_message: string | null;
   http_status: number | null;
 }
+
+export interface ReminderConfig {
+  id: string;
+  vendor_key: string;
+  vendor_name: string;
+  enabled: boolean;
+  time1_start: string | null;
+  time1_end: string | null;
+  time2_start: string | null;
+  time2_end: string | null;
+  days_of_week: string;
+  auto_close: boolean;
+  auto_close_seconds: number;
+  created_at: string;
+  updated_at: string;
+}

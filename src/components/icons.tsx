@@ -111,9 +111,9 @@ export const IconSettings = (p: IconProps) => (
 
 export const IconSync = (p: IconProps) => (
   <Svg {...p}>
-    <path d="M12 2a10 10 0 0 0-7.07 2.93L3 7" />
-    <path d="M3 3v4h4" />
-    <path d="M12 22a10 10 0 0 0 7.07-2.93L21 17" />
-    <path d="M21 21v-4h-4" />
+    <path d="M7 17 17 7" />
+    <path d="M17 7l-4 4" />
+    <path d="M17 7 7 17" />
+    <path d="M7 17l4-4" />
   </Svg>
 );

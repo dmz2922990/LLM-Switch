@@ -4,8 +4,9 @@ import type { Profile, SyncHistory } from "../types";
 import { api } from "../api";
 import { UsageDisplay } from "./UsageDisplay";
 import { formatRelativeTime } from "../lib/format";
+import syncIcon from "../img/sync-icon.png";
 import {
-  IconCheck, IconChevronDown, IconChevronUp, IconCopy, IconPencil, IconRefresh, IconSettings, IconSync, IconX,
+  IconCheck, IconChevronDown, IconChevronUp, IconCopy, IconPencil, IconRefresh, IconSettings, IconX,
 } from "./icons";
 
 interface Props {
@@ -99,7 +100,7 @@ export function ProfileCard({
             disabled={syncing}
             title={t("tabs.sync")}
           >
-            {syncing ? <IconRefresh size={13} className="spin" /> : <IconSync size={13} />}
+            {syncing ? <IconRefresh size={13} className="spin" /> : <img src={syncIcon} alt="" className="sync-btn-icon" />}
           </button>
           <button className="icon-btn" onClick={(e) => { e.stopPropagation(); onOpenSettings(profile); }} title={t("common.settings")}>
             <IconSettings size={13} />

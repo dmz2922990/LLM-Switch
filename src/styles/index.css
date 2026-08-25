@@ -258,6 +258,16 @@ button:disabled {
   color: var(--danger);
 }
 
+/* Sync button icon (PNG) — invert in dark mode */
+.sync-btn-icon {
+  width: 13px;
+  height: 13px;
+  opacity: 0.8;
+}
+html[data-theme="dark"] .sync-btn-icon {
+  filter: invert(0.85);
+}
+
 /* Mini icon — bare 22×22 for sort arrows / refresh */
 .mini-btn {
   display: inline-flex;

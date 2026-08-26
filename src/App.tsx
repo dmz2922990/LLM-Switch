@@ -27,6 +27,7 @@ function App() {
   const [selectedProfileId, setSelectedProfileId] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadFailed, setLoadFailed] = useState(false);
+  const [dbError, setDbError] = useState<string | null>(null);
   const [globalDialog, setGlobalDialog] = useState<{ open: boolean; tab: GlobalTab }>({ open: false, tab: "hosts" });
   const [settingsProfileId, setSettingsProfileId] = useState<string | null>(null);
   const [syncProfileId, setSyncProfileId] = useState<string | null>(null);
@@ -96,6 +97,14 @@ function App() {
     getVersion().then(setAppVersion);
   }, [refresh]);
 
+  // Fallback: retry loading every 2s while in failed state, in case the
+  // db-ready event raced past the listener registration.
+  useEffect(() => {
+    if (!loadFailed || dbError) return;
+    const timer = setInterval(() => refresh(), 2000);
+    return () => clearInterval(timer);
+  }, [loadFailed, dbError, refresh]);
+
   useEffect(() => {
     return () => {
       if (toastTimerRef.current) clearTimeout(toastTimerRef.current);
@@ -127,12 +136,14 @@ function App() {
     const unlistenFileChanged = listen("settings-file-changed", () => refresh());
     const unlistenActivation = listen("activation-completed", () => refresh());
     const unlistenDbReady = listen("db-ready", () => refresh());
+    const unlistenDbError = listen<string>("db-error", (e) => setDbError(e.payload));
     return () => {
       unlistenAbout.then((fn) => fn());
       unlistenSwitched.then((fn) => fn());
       unlistenFileChanged.then((fn) => fn());
       unlistenActivation.then((fn) => fn());
       unlistenDbReady.then((fn) => fn());
+      unlistenDbError.then((fn) => fn());
     };
   }, [refresh]);
 
@@ -327,7 +338,10 @@ function App() {
   if (loadFailed && profiles.length === 0) {
     return (
       <div className="empty-state">
-        <p>{t("common.loadFailed")}</p>
+        <p>{dbError ? t("common.loadFailed") : t("common.loadFailed")}</p>
+        {dbError && (
+          <p style={{ color: "var(--ink-faint)", fontSize: "var(--fs-sm)" }}>{dbError}</p>
+        )}
         <button className="btn btn--primary" onClick={() => refresh()}>{t("common.retry")}</button>
       </div>
     );

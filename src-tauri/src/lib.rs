@@ -97,11 +97,18 @@ pub fn run() {
                     .path()
                     .app_data_dir()
                     .expect("Failed to get app data dir");
-                let pool = db::init_pool(&data_dir)
-                    .await
-                    .expect("Failed to init database");
-                handle.manage(pool.clone());
-                let _ = handle.emit("db-ready", ());
+                let pool = match db::init_pool(&data_dir).await {
+                    Ok(pool) => {
+                        handle.manage(pool.clone());
+                        let _ = handle.emit("db-ready", ());
+                        pool
+                    }
+                    Err(e) => {
+                        eprintln!("Failed to init database: {}", e);
+                        let _ = handle.emit("db-error", e.to_string());
+                        return;
+                    }
+                };
 
                 if let Err(e) = services::profile_service::ensure_default_profile(&pool).await {
                     eprintln!("Failed to create default profile: {}", e);

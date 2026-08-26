@@ -13,10 +13,9 @@ CREATE TABLE IF NOT EXISTS reminder_config (
 );
 
 -- Seed default vendor configs
+-- NOTE: default peak-hours for bigmodel.cn are set by 009, which runs after
+-- 008 adds the time1_start/time1_end columns this table does not have yet.
 INSERT OR IGNORE INTO reminder_config (id, vendor_key, vendor_name) VALUES
     ('bigmodel.cn', 'bigmodel.cn', '智谱'),
     ('kimi.com', 'kimi.com', 'Kimi'),
     ('deepseek.com', 'deepseek.com', 'DeepSeek');
-
--- bigmodel.cn enabled by default: 14:00-18:00 Mon-Fri
-UPDATE reminder_config SET enabled = 1, time1_start = '14:00', time1_end = '18:00', updated_at = datetime('now') WHERE vendor_key = 'bigmodel.cn' AND enabled = 0;

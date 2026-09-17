@@ -119,7 +119,7 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
   if (error) {
     return (
       <div className="profile-usage-error">
-        <span className="profile-usage-error-msg">{error}</span>
+        <span className="profile-usage-error-msg" title={error}>{error}</span>
         <button
           className="mini-btn"
           onClick={(e) => { e.stopPropagation(); fetchUsage(); }}

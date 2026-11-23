@@ -104,7 +104,7 @@ async fn fetch_zhipu_usage(token: &str) -> Result<UsageInfo, ProviderError> {
             percentage: pct,
             next_reset_time: mcp_reset_time,
             usage: Some(mcp_usage),
-            remaining: Some(format!("已用 {}/剩余 {}", mcp_current, mcp_remaining)),
+            remaining: Some(format!("{}/{}", mcp_remaining, mcp_usage)),
         });
     }
 
@@ -166,7 +166,7 @@ async fn fetch_kimi_usage(token: &str) -> Result<UsageInfo, ProviderError> {
                 label: "5h".to_string(),
                 percentage: pct,
                 next_reset_time: reset_time,
-                remaining: Some(format!("{}/{}", used as i64, limit as i64)),
+                remaining: Some(format!("{}/{}", remaining as i64, limit as i64)),
                 usage: None,
             });
         }
@@ -196,7 +196,7 @@ async fn fetch_kimi_usage(token: &str) -> Result<UsageInfo, ProviderError> {
             label: "Weekly".to_string(),
             percentage: pct,
             next_reset_time: reset_time,
-            remaining: Some(format!("{}/{}", used as i64, limit as i64)),
+            remaining: Some(format!("{}/{}", remaining as i64, limit as i64)),
             usage: None,
         });
     }

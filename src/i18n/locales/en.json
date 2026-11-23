@@ -177,6 +177,7 @@
     "nextRefresh": "Next refresh",
     "resetAt": "Resets at ",
     "remaining": "Remaining",
+    "remainingShort": "{{pct}}% left",
     "balance": "Balance",
     "mcp": "MCP",
     "retry": "Retry",

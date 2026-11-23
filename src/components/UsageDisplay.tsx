@@ -16,9 +16,13 @@ function parseEnv(json: string): Record<string, string> {
   }
 }
 
-function getBarClass(pct: number): string {
-  if (pct >= 90) return "is-danger";
-  if (pct >= 70) return "is-warn";
+function getRemainingPct(usedPct: number): number {
+  return Math.max(0, Math.min(100, 100 - usedPct));
+}
+
+function getBarClass(remainingPct: number): string {
+  if (remainingPct <= 10) return "is-danger";
+  if (remainingPct <= 30) return "is-warn";
   return "is-ok";
 }
 
@@ -154,53 +158,57 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
     <div className="profile-usage-footer">
       <div className="profile-usage">
         <div className="profile-usage-grid">
-          {usage.quotas.map((q) => (
-            <div
-              key={q.label}
-              className="profile-usage-quota"
-              onMouseEnter={(e) => {
-                if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-                setHovered({ label: q.label, top: e.clientY + 14, left: e.clientX + 12 });
-              }}
-              onMouseMove={(e) => {
-                setHovered((prev) => prev ? { ...prev, top: e.clientY + 14, left: e.clientX + 12 } : prev);
-              }}
-              onMouseLeave={() => {
-                if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
-                hoverTimerRef.current = setTimeout(() => setHovered(null), 80);
-              }}
-            >
-              {q.label === "Balance" ? (
-                <div className="profile-usage-balance">
-                  <span className="profile-usage-label">{t("usage.balance")}</span>
-                  <span className="profile-usage-balance-amt">{q.remaining ?? "-"}</span>
-                </div>
-              ) : (
-                <>
-                  <div className="profile-usage-head">
-                    <span className="profile-usage-label">
-                      {q.label === "MCP" ? t("usage.mcp") : q.label}
-                    </span>
-                    <span className={`profile-usage-pct ${getBarClass(q.percentage)}`}>
-                      {q.percentage.toFixed(0)}%
-                    </span>
+          {usage.quotas.map((q) => {
+            const remainingPct = getRemainingPct(q.percentage);
+            const barClass = getBarClass(remainingPct);
+            return (
+              <div
+                key={q.label}
+                className="profile-usage-quota"
+                onMouseEnter={(e) => {
+                  if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+                  setHovered({ label: q.label, top: e.clientY + 14, left: e.clientX + 12 });
+                }}
+                onMouseMove={(e) => {
+                  setHovered((prev) => prev ? { ...prev, top: e.clientY + 14, left: e.clientX + 12 } : prev);
+                }}
+                onMouseLeave={() => {
+                  if (hoverTimerRef.current) clearTimeout(hoverTimerRef.current);
+                  hoverTimerRef.current = setTimeout(() => setHovered(null), 80);
+                }}
+              >
+                {q.label === "Balance" ? (
+                  <div className="profile-usage-balance">
+                    <span className="profile-usage-label">{t("usage.balance")}</span>
+                    <span className="profile-usage-balance-amt">{q.remaining ?? "-"}</span>
                   </div>
-                  <div className="profile-usage-bar">
-                    <div
-                      className={`profile-usage-bar-fill ${getBarClass(q.percentage)}`}
-                      style={{ width: `${Math.min(q.percentage, 100)}%` }}
-                    />
-                  </div>
-                  {q.next_reset_time ? (
-                    <span className="profile-usage-reset" title={`${t("usage.resetAt")}${formatExactTime(q.next_reset_time)}`}>
-                      <IconClock size={10} />
-                      <span>{formatCountdown(q.next_reset_time, now, t)}</span>
-                    </span>
-                  ) : null}
-                </>
-              )}
-            </div>
-          ))}
+                ) : (
+                  <>
+                    <div className="profile-usage-head">
+                      <span className="profile-usage-label">
+                        {q.label === "MCP" ? t("usage.mcp") : q.label}
+                      </span>
+                      <span className={`profile-usage-pct ${barClass}`}>
+                        {t("usage.remainingShort", { pct: remainingPct.toFixed(0) })}
+                      </span>
+                    </div>
+                    <div className="profile-usage-bar">
+                      <div
+                        className={`profile-usage-bar-fill ${barClass}`}
+                        style={{ width: `${remainingPct}%` }}
+                      />
+                    </div>
+                    {q.next_reset_time ? (
+                      <span className="profile-usage-reset" title={`${t("usage.resetAt")}${formatExactTime(q.next_reset_time)}`}>
+                        <IconClock size={10} />
+                        <span>{formatCountdown(q.next_reset_time, now, t)}</span>
+                      </span>
+                    ) : null}
+                  </>
+                )}
+              </div>
+            );
+          })}
         </div>
 
         <button
@@ -216,8 +224,8 @@ export function UsageDisplay({ profile }: { profile: Profile }) {
 
       {hovered && (() => {
         const q = usage.quotas.find((item) => item.label === hovered.label);
-        if (!q || !q.remaining) return null;
-        const text = q.label === "MCP" ? q.remaining : `${t("usage.remaining")}: ${q.remaining}`;
+        if (!q || !q.remaining || q.label === "Balance") return null;
+        const text = `${t("usage.remaining")}: ${q.remaining}`;
         return createPortal(
           <div className="profile-usage-tooltip" style={{ top: hovered.top, left: hovered.left }}>
             {text}

@@ -177,6 +177,7 @@
     "nextRefresh": "下次刷新",
     "resetAt": "重置于",
     "remaining": "剩余",
+    "remainingShort": "剩余 {{pct}}%",
     "balance": "余额",
     "mcp": "MCP",
     "retry": "重试",

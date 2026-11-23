@@ -18,31 +18,35 @@ export function ActivationHistoryList({ profiles }: Props) {
   const { t } = useTranslation();
   const [logs, setLogs] = useState<ActivationLog[]>([]);
 
-  const loadLogs = () => {
-    api.activation.listLog().then(setLogs).catch(() => {});
-  };
-
   useEffect(() => {
-    loadLogs();
+    api.activation.listLog().then(setLogs).catch(() => {});
   }, []);
 
   if (logs.length === 0) {
-    return <p className="empty-text" style={{ padding: "12px 20px" }}>{t("activation.noRecords")}</p>;
+    return <p className="empty-text">{t("activation.noRecords")}</p>;
   }
 
   return (
-    <div style={{ padding: "4px 20px 16px" }}>
+    <div className="log-list">
       {logs.map((log) => {
         const profileName = profiles.find((p) => p.id === log.profile_id)?.name ?? log.profile_id;
+        const ok = log.status === "success";
         return (
-          <div key={log.id} className="activation-log-item">
-            <span style={{ color: log.status === "success" ? "var(--link)" : "var(--danger)" }}>
-              {log.status === "success" ? <IconCheck size={12} /> : <IconX size={12} />}
-            </span>{" "}
-            {formatLogDate(log.activated_at)} — {profileName}
-            {log.error_message && (
-              <span style={{ color: "var(--danger)" }}> ({log.error_message})</span>
-            )}
+          <div key={log.id} className="log-row">
+            <span className={`log-status ${ok ? "is-ok" : "is-err"}`}>
+              {ok ? <IconCheck size={11} /> : <IconX size={11} />}
+            </span>
+            <div className="log-content">
+              <div className="log-primary">
+                <span className="log-entity">{profileName}</span>
+                <span className="log-time-inline">{formatLogDate(log.activated_at)}</span>
+              </div>
+              {log.error_message && (
+                <div className="log-meta">
+                  <span className="log-error">{log.error_message}</span>
+                </div>
+              )}
+            </div>
           </div>
         );
       })}

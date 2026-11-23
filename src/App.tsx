@@ -15,7 +15,8 @@ import { SyncHostDialog } from "./components/SyncHostDialog";
 import { GlobalSettingsDialog } from "./components/GlobalSettingsDialog";
 import { NewProfileDialog } from "./components/NewProfileDialog";
 import { ConfirmDialog } from "./components/ConfirmDialog";
-import { IconPlus } from "./components/icons";
+import { Dialog } from "./components/Dialog";
+import { IconCheck, IconServer, IconX } from "./components/icons";
 import type { UpdateStatus } from "./components/AboutPanel";
 
 type GlobalTab = "hosts" | "sync" | "activation" | "reminder" | "about";
@@ -48,6 +49,16 @@ function App() {
 
   const hostNames = useMemo(
     () => Object.fromEntries(hosts.map((h) => [h.id, h.name])),
+    [hosts],
+  );
+
+  const activeProfile = useMemo(
+    () => profiles.find((p) => p.is_active) ?? null,
+    [profiles],
+  );
+
+  const defaultHost = useMemo(
+    () => hosts.find((h) => h.is_default) ?? null,
     [hosts],
   );
 
@@ -243,9 +254,9 @@ function App() {
       setSelectedProfileId(id);
       refresh();
     } catch (e: any) {
-      alert(e.toString());
+      showToast("err", e.toString());
     }
-  }, [refresh]);
+  }, [refresh, showToast]);
 
   const doSync = useCallback(async (profileId: string, hostIds: string[]) => {
     setSyncingProfileId(profileId);
@@ -253,7 +264,6 @@ function App() {
       const res = await api.sync.toHosts(profileId, hostIds);
       const okCount = res.filter((r) => r.success).length;
       const failCount = res.length - okCount;
-      // Summary badge reflects the last result; list each outcome in the tooltip via refresh().
       const last = res[res.length - 1];
       if (last) {
         setSyncSummaries((prev) => ({ ...prev, [profileId]: {
@@ -301,9 +311,9 @@ function App() {
       setCopyingId(null);
       refresh();
     } catch (err: any) {
-      alert(err.toString());
+      showToast("err", err.toString());
     }
-  }, [refresh]);
+  }, [refresh, showToast]);
 
   const handleDelete = useCallback(async (id: string) => {
     try {
@@ -311,18 +321,18 @@ function App() {
       setDeletingId(null);
       refresh();
     } catch (err: any) {
-      alert(err.toString());
+      showToast("err", err.toString());
     }
-  }, [refresh]);
+  }, [refresh, showToast]);
 
   const handleReorder = useCallback(async (orderedIds: string[]) => {
     try {
       await api.profile.reorder(orderedIds);
       refresh();
     } catch (err: any) {
-      alert(err.toString());
+      showToast("err", err.toString());
     }
-  }, [refresh]);
+  }, [refresh, showToast]);
 
   const handleOpenSyncHistory = useCallback(() => {
     setGlobalDialog({ open: true, tab: "sync" });
@@ -332,15 +342,20 @@ function App() {
   const syncProfile = profiles.find((p) => p.id === syncProfileId) ?? null;
 
   if (loading) {
-    return <div className="empty-state"><p>{t("common.loading")}</p></div>;
+    return (
+      <div className="empty-state">
+        <div className="loading-spinner" />
+        <p>{t("common.loading")}</p>
+      </div>
+    );
   }
 
   if (loadFailed && profiles.length === 0) {
     return (
       <div className="empty-state">
-        <p>{dbError ? t("common.loadFailed") : t("common.loadFailed")}</p>
+        <p>{t("common.loadFailed")}</p>
         {dbError && (
-          <p style={{ color: "var(--ink-faint)", fontSize: "var(--fs-sm)" }}>{dbError}</p>
+          <p className="empty-sub">{dbError}</p>
         )}
         <button className="btn btn--primary" onClick={() => refresh()}>{t("common.retry")}</button>
       </div>
@@ -349,33 +364,59 @@ function App() {
 
   return (
     <div className="app">
-      <TopBar onOpenGlobalSettings={() => setGlobalDialog({ open: true, tab: "hosts" })} />
+      <TopBar
+        activeProfileName={activeProfile?.name ?? null}
+        onNewProfile={() => setNewOpen(true)}
+        onOpenGlobalSettings={() => setGlobalDialog({ open: true, tab: "hosts" })}
+      />
 
       <main className="dashboard">
-        <ProfileGrid
-          profiles={profiles}
-          selectedId={selectedProfileId}
-          onSelect={setSelectedProfileId}
-          onSwitchActive={handleSwitchActive}
-          onOpenSettings={(p) => setSettingsProfileId(p.id)}
-          onSync={handleCardSync}
-          onCopy={(id) => setCopyingId(id)}
-          onDelete={(id) => setDeletingId(id)}
-          onReorder={handleReorder}
-          onRenamed={refresh}
-          syncingId={syncingProfileId}
-          syncSummaries={syncSummaries}
-          latestSyncId={latestSyncId}
-          flashProfileId={flashProfileId}
-          hostNames={hostNames}
-          reminderConfigs={reminderConfigs}
-          onOpenSyncHistory={handleOpenSyncHistory}
-        />
-      </main>
+        <div className="dashboard-inner">
+          {profiles.length > 0 && (
+            <div className="dashboard-header">
+              <div className="dashboard-heading">
+                <h1 className="dashboard-title">{t("sidebar.title")}</h1>
+                <span className="dashboard-count">
+                  {t("sidebar.profileCount", { count: profiles.length })}
+                </span>
+              </div>
+              {defaultHost && (
+                <button
+                  className="dashboard-host-pill"
+                  onClick={() => setGlobalDialog({ open: true, tab: "hosts" })}
+                  title={`${defaultHost.username}@${defaultHost.address}:${defaultHost.port}`}
+                >
+                  <IconServer size={12} />
+                  <span className="dashboard-host-label">{t("sidebar.defaultHostLabel")}:</span>
+                  <span className="dashboard-host-name">{defaultHost.name}</span>
+                </button>
+              )}
+            </div>
+          )}
 
-      <button className="fab" onClick={() => setNewOpen(true)} title={t("sidebar.newProfile")}>
-        <IconPlus size={22} />
-      </button>
+          <ProfileGrid
+            profiles={profiles}
+            selectedId={selectedProfileId}
+            onSelect={setSelectedProfileId}
+            onSwitchActive={handleSwitchActive}
+            onOpenSettings={(p) => setSettingsProfileId(p.id)}
+            onSync={handleCardSync}
+            onCopy={(id) => setCopyingId(id)}
+            onDelete={(id) => setDeletingId(id)}
+            onReorder={handleReorder}
+            onRenamed={refresh}
+            onNewProfile={() => setNewOpen(true)}
+            syncingId={syncingProfileId}
+            syncSummaries={syncSummaries}
+            latestSyncId={latestSyncId}
+            flashProfileId={flashProfileId}
+            hostNames={hostNames}
+            reminderConfigs={reminderConfigs}
+            onOpenSyncHistory={handleOpenSyncHistory}
+            onError={(msg) => showToast("err", msg)}
+          />
+        </div>
+      </main>
 
       {settingsProfile && (
         <ProfileSettingsDialog profile={settingsProfile} onClose={() => setSettingsProfileId(null)} onSaved={refresh} />
@@ -408,6 +449,7 @@ function App() {
 
       {deletingId && (
         <ConfirmDialog
+          variant="danger"
           message={t("sidebar.confirmDelete", { name: profiles.find((p) => p.id === deletingId)?.name ?? "" })}
           onConfirm={() => handleDelete(deletingId)}
           onCancel={() => setDeletingId(null)}
@@ -422,28 +464,37 @@ function App() {
       )}
 
       {syncToast && (
-        <div className={`app-toast app-toast--${syncToast.kind}`}>{syncToast.msg}</div>
+        <div className={`app-toast app-toast--${syncToast.kind}`} role="status">
+          <span className="app-toast-icon">
+            {syncToast.kind === "ok" ? <IconCheck size={13} /> : <IconX size={13} />}
+          </span>
+          <span>{syncToast.msg}</span>
+        </div>
       )}
 
       {showStartupUpdateDialog && startupUpdate && (
-        <div className="dialog-overlay" onClick={handleDismissStartupUpdate}>
-          <div className="dialog dialog--sm" onClick={(e) => e.stopPropagation()}>
-            <h3 className="dialog-title">{t("updater.startupNewVersion")}</h3>
-            <p className="dialog-sub" style={{ marginBottom: 8 }}>
-              {t("updater.startupNewVersionDesc", { version: startupUpdate.version, currentVersion: appVersion ? `v${appVersion}` : "" })}
-            </p>
-            {startupUpdate.body && (
-              <p style={{ color: "var(--ink-faint)", fontSize: "var(--fs-sm)", marginBottom: 12, maxHeight: 120, overflowY: "auto", textAlign: "left" }}>
-                {startupUpdate.body}
-              </p>
-            )}
-            <div className="dialog-actions" style={{ justifyContent: "center" }}>
+        <Dialog
+          title={t("updater.startupNewVersion")}
+          size="sm"
+          onClose={handleDismissStartupUpdate}
+          center
+          actions={
+            <>
               <button className="btn btn--ghost" onClick={handleDismissStartupUpdate}>{t("common.cancel")}</button>
               <button className="btn btn--ghost" onClick={handleSkipVersion}>{t("updater.skipVersion")}</button>
               <button className="btn btn--primary" onClick={handleStartupUpgrade}>{t("updater.upgrade")}</button>
+            </>
+          }
+        >
+          <p className="dialog-sub" style={{ marginBottom: 10 }}>
+            {t("updater.startupNewVersionDesc", { version: startupUpdate.version, currentVersion: appVersion ? `v${appVersion}` : "" })}
+          </p>
+          {startupUpdate.body && (
+            <div className="update-release-notes">
+              {startupUpdate.body}
             </div>
-          </div>
-        </div>
+          )}
+        </Dialog>
       )}
     </div>
   );

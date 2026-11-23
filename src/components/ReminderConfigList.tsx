@@ -84,11 +84,6 @@ export function ReminderConfigList({ configs, onChanged }: Props) {
     update(id, { days_of_week: days.join(",") });
   };
 
-  const dayLabel = (d: number) => {
-    const map: Record<number, string> = { 1: "一", 2: "二", 3: "三", 4: "四", 5: "五", 6: "六", 7: "日" };
-    return map[d];
-  };
-
   return (
     <div className="reminder-config-list">
       {configs.map((c) => {
@@ -99,10 +94,15 @@ export function ReminderConfigList({ configs, onChanged }: Props) {
             <div className="reminder-card-head">
               <span className="reminder-vendor-name">{c.vendor_name}</span>
               <span className="reminder-vendor-key">{c.vendor_key}</span>
-              <button className={`activation-toggle${cfg.enabled ? " is-on" : ""}`}
+              <button
+                type="button"
+                role="switch"
+                aria-checked={cfg.enabled}
+                className={`switch${cfg.enabled ? " is-on" : ""}`}
                 onClick={() => { update(c.id, { enabled: !cfg.enabled }); setTimeout(() => commit(c.id), 0); }}
-                disabled={saving === c.id} tabIndex={-1}>
-                {cfg.enabled ? "✓" : ""}
+                disabled={saving === c.id}
+              >
+                <span className="switch-thumb" />
               </button>
             </div>
             {cfg.enabled && (
@@ -149,9 +149,13 @@ export function ReminderConfigList({ configs, onChanged }: Props) {
                   <label className="reminder-label">{t("reminder.days")}</label>
                   <div className="reminder-days">
                     {WEEKDAYS.map((d) => (
-                      <button key={d} className={`reminder-day-btn${cfg.days_of_week.split(",").includes(String(d)) ? " is-on" : ""}`}
-                        onClick={() => { toggleDay(c.id, d); setTimeout(() => commit(c.id), 100); }}>
-                        {dayLabel(d)}
+                      <button
+                        type="button"
+                        key={d}
+                        className={`reminder-day-btn${cfg.days_of_week.split(",").includes(String(d)) ? " is-on" : ""}`}
+                        onClick={() => { toggleDay(c.id, d); setTimeout(() => commit(c.id), 100); }}
+                      >
+                        {t(`reminder.day${d}`)}
                       </button>
                     ))}
                   </div>

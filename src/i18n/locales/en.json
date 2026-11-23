@@ -15,7 +15,9 @@
     "retry": "Retry",
     "themeToggle": "Toggle theme",
     "settings": "Settings",
-    "sync": "Sync"
+    "sync": "Sync",
+    "more": "More actions",
+    "close": "Close"
   },
   "globalSettings": {
     "title": "Global Settings",
@@ -42,7 +44,14 @@
     "autoClose": "Auto close",
     "seconds": "s",
     "peakStart": "peak hours start",
-    "peakPeriod": "Currently in peak period"
+    "peakPeriod": "Currently in peak period",
+    "day1": "M",
+    "day2": "T",
+    "day3": "W",
+    "day4": "T",
+    "day5": "F",
+    "day6": "S",
+    "day7": "S"
   },
   "syncHost": {
     "title": "Select Sync Host",
@@ -68,7 +77,12 @@
     "confirmCopy": "Copy this profile?",
     "confirmAction": "Confirm Action",
     "language": "Language",
-    "sort": "Reorder"
+    "sort": "Reorder",
+    "moveUp": "Move up",
+    "moveDown": "Move down",
+    "profileCount": "{{count}} profiles",
+    "defaultHostLabel": "Default host",
+    "unconfigured": "No endpoint configured"
   },
   "editor": {
     "invalidJson": "Invalid JSON format, please check syntax",
@@ -85,7 +99,10 @@
     "quickOpusModel": "Opus Model",
     "contextCopy": "Copy",
     "contextCut": "Cut",
-    "contextSelectAll": "Select All"
+    "contextSelectAll": "Select All",
+    "quickSettings": "Quick Settings",
+    "showToken": "Show Token",
+    "hideToken": "Hide Token"
   },
   "sync": {
     "title": "Remote Sync",

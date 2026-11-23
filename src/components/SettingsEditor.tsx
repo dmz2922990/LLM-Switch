@@ -5,6 +5,7 @@ import type { Profile } from "../types";
 import { api } from "../api";
 import { useTheme } from "../theme";
 import { defineMonacoThemes } from "../lib/monacoThemes";
+import { IconChevronDown, IconChevronRight, IconEye, IconEyeOff, IconSliders } from "./icons";
 
 interface Props {
   profile: Profile;
@@ -28,6 +29,8 @@ export function SettingsEditor({ profile, onSaved }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
   const [showSaved, setShowSaved] = useState(false);
+  const [showQuick, setShowQuick] = useState(true);
+  const [showToken, setShowToken] = useState(false);
   const savedTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [quickSettings, setQuickSettings] = useState<QuickSettings>({
     baseUrl: "",
@@ -188,14 +191,12 @@ export function SettingsEditor({ profile, onSaved }: Props) {
     return () => document.removeEventListener("keydown", handleKeyDown, true);
   }, [handleSave]);
 
-  // Clear save toast timer on unmount
   useEffect(() => {
     return () => {
       if (savedTimerRef.current) clearTimeout(savedTimerRef.current);
     };
   }, []);
 
-  // Close custom context menu on outside interaction
   useEffect(() => {
     if (!contextMenu) return;
     const close = () => setContextMenu(null);
@@ -236,7 +237,6 @@ export function SettingsEditor({ profile, onSaved }: Props) {
 
   const editorTheme = theme === "dark" ? "llm-dark" : "llm-light";
 
-  // Keep Monaco theme in sync with the app theme (editor may mount after init)
   useEffect(() => {
     monacoRef.current?.editor.setTheme(editorTheme);
   }, [editorTheme]);
@@ -245,71 +245,105 @@ export function SettingsEditor({ profile, onSaved }: Props) {
     <div className="editor-container">
       <div className="toolbar">
         <button className="btn btn--primary btn--sm" onClick={handleSave} disabled={!hasChanges}>
-          {t("common.save")}
+          <span>{t("common.save")}</span>
+          <kbd className="btn-kbd">⌘S</kbd>
         </button>
         <button className="btn btn--ghost btn--sm" onClick={handleFormat}>
           {t("editor.format")}
         </button>
+        <button
+          className={`btn btn--ghost btn--sm quick-toggle-btn${showQuick ? " is-active" : ""}`}
+          onClick={() => setShowQuick((v) => !v)}
+        >
+          <IconSliders size={12} />
+          <span>{t("editor.quickSettings")}</span>
+          {showQuick ? <IconChevronDown size={12} /> : <IconChevronRight size={12} />}
+        </button>
+
         {hasChanges && (
-          <span className="status-text status-text--warn">{t("editor.unsaved")}</span>
+          <span className="status-pill status-pill--warn">
+            <span className="status-dot status-dot--warn" />
+            {t("editor.unsaved")}
+          </span>
         )}
         {error && <span className="status-text status-text--err">{error}</span>}
         {profile.is_active && (
-          <span className="status-text status-text--rx" style={{ marginLeft: "auto" }}>{t("editor.activeHint")}</span>
+          <span className="status-pill status-pill--ok" style={{ marginLeft: "auto" }}>
+            <span className="status-dot status-dot--active" />
+            {t("editor.activeHint")}
+          </span>
         )}
       </div>
 
-      <div className="quick-settings">
-        <div className="form-group form-group--wide">
-          <label className="field-label">{t("editor.quickBaseUrl")}</label>
-          <input
-            value={quickSettings.baseUrl}
-            onChange={(e) => updateJsonFromQuickSetting("baseUrl", e.target.value)}
-            placeholder="https://api.anthropic.com"
-          />
+      {showQuick && (
+        <div className="quick-settings">
+          <div className="quick-settings-row quick-settings-row--primary">
+            <div className="quick-field">
+              <label className="field-label">{t("editor.quickBaseUrl")}</label>
+              <input
+                value={quickSettings.baseUrl}
+                onChange={(e) => updateJsonFromQuickSetting("baseUrl", e.target.value)}
+                placeholder="https://api.anthropic.com"
+              />
+            </div>
+            <div className="quick-field">
+              <label className="field-label">{t("editor.quickAuthToken")}</label>
+              <div className="input-with-action">
+                <input
+                  type={showToken ? "text" : "password"}
+                  value={quickSettings.authToken}
+                  onChange={(e) => updateJsonFromQuickSetting("authToken", e.target.value)}
+                  placeholder="sk-ant-..."
+                />
+                <button
+                  type="button"
+                  className="input-action-btn"
+                  onClick={() => setShowToken((v) => !v)}
+                  title={showToken ? t("editor.hideToken") : t("editor.showToken")}
+                  aria-label={showToken ? t("editor.hideToken") : t("editor.showToken")}
+                >
+                  {showToken ? <IconEyeOff size={13} /> : <IconEye size={13} />}
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div className="quick-settings-row quick-settings-row--models">
+            <div className="quick-field">
+              <label className="field-label">{t("editor.quickModel")}</label>
+              <input
+                value={quickSettings.model}
+                onChange={(e) => updateJsonFromQuickSetting("model", e.target.value)}
+                placeholder="claude-sonnet-4-20250514"
+              />
+            </div>
+            <div className="quick-field">
+              <label className="field-label">{t("editor.quickHaikuModel")}</label>
+              <input
+                value={quickSettings.haikuModel}
+                onChange={(e) => updateJsonFromQuickSetting("haikuModel", e.target.value)}
+                placeholder="claude-haiku-3-5"
+              />
+            </div>
+            <div className="quick-field">
+              <label className="field-label">{t("editor.quickSonnetModel")}</label>
+              <input
+                value={quickSettings.sonnetModel}
+                onChange={(e) => updateJsonFromQuickSetting("sonnetModel", e.target.value)}
+                placeholder="claude-sonnet-4"
+              />
+            </div>
+            <div className="quick-field">
+              <label className="field-label">{t("editor.quickOpusModel")}</label>
+              <input
+                value={quickSettings.opusModel}
+                onChange={(e) => updateJsonFromQuickSetting("opusModel", e.target.value)}
+                placeholder="claude-opus-4"
+              />
+            </div>
+          </div>
         </div>
-        <div className="form-group form-group--md">
-          <label className="field-label">{t("editor.quickAuthToken")}</label>
-          <input
-            type="password"
-            value={quickSettings.authToken}
-            onChange={(e) => updateJsonFromQuickSetting("authToken", e.target.value)}
-            placeholder="sk-ant-..."
-          />
-        </div>
-        <div className="form-group form-group--sm">
-          <label className="field-label">{t("editor.quickModel")}</label>
-          <input
-            value={quickSettings.model}
-            onChange={(e) => updateJsonFromQuickSetting("model", e.target.value)}
-            placeholder="claude-sonnet-4-20250514"
-          />
-        </div>
-        <div className="form-group form-group--sm">
-          <label className="field-label">{t("editor.quickHaikuModel")}</label>
-          <input
-            value={quickSettings.haikuModel}
-            onChange={(e) => updateJsonFromQuickSetting("haikuModel", e.target.value)}
-            placeholder="claude-haiku-3-5"
-          />
-        </div>
-        <div className="form-group form-group--sm">
-          <label className="field-label">{t("editor.quickSonnetModel")}</label>
-          <input
-            value={quickSettings.sonnetModel}
-            onChange={(e) => updateJsonFromQuickSetting("sonnetModel", e.target.value)}
-            placeholder="claude-sonnet-4"
-          />
-        </div>
-        <div className="form-group form-group--sm">
-          <label className="field-label">{t("editor.quickOpusModel")}</label>
-          <input
-            value={quickSettings.opusModel}
-            onChange={(e) => updateJsonFromQuickSetting("opusModel", e.target.value)}
-            placeholder="claude-opus-4"
-          />
-        </div>
-      </div>
+      )}
 
       <div className="editor-host">
         <Editor
@@ -323,6 +357,8 @@ export function SettingsEditor({ profile, onSaved }: Props) {
             minimap: { enabled: false },
             contextmenu: false,
             fontSize: 13,
+            lineHeight: 20,
+            padding: { top: 12, bottom: 12 },
             lineNumbers: "on",
             scrollBeyondLastLine: false,
             automaticLayout: true,

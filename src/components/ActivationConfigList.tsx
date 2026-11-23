@@ -11,7 +11,6 @@ interface Props {
 export function ActivationConfigList({ profiles, onChanged }: Props) {
   const { t } = useTranslation();
   const [saving, setSaving] = useState<string | null>(null);
-  // Local draft of each profile's time so typing doesn't trigger refresh on every keystroke.
   const [drafts, setDrafts] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -49,24 +48,18 @@ export function ActivationConfigList({ profiles, onChanged }: Props) {
     }
   };
 
+  if (profiles.length === 0) {
+    return <p className="empty-text">{t("sidebar.noProfiles")}</p>;
+  }
+
   return (
-    <div className="activation-config-list">
+    <div className="settings-card-list">
       {profiles.map((p) => {
         const enabled = !!p.activation_time;
         return (
           <div key={p.id} className="activation-config-row">
             <span className="activation-config-name">{p.name}</span>
             <div className="activation-config-controls">
-              <button
-                className={`activation-toggle${enabled ? " is-on" : ""}`}
-                onClick={() => handleToggle(p, !enabled)}
-                disabled={saving === p.id}
-                title={t("activation.toggleHint")}
-                aria-label={t("activation.toggleHint")}
-                tabIndex={-1}
-              >
-                {enabled ? "✓" : ""}
-              </button>
               <input
                 type="time"
                 value={drafts[p.id] ?? ""}
@@ -76,6 +69,18 @@ export function ActivationConfigList({ profiles, onChanged }: Props) {
                 onKeyDown={(e) => { if (e.key === "Enter") (e.target as HTMLInputElement).blur(); }}
                 className="activation-time-input"
               />
+              <button
+                type="button"
+                role="switch"
+                aria-checked={enabled}
+                className={`switch${enabled ? " is-on" : ""}`}
+                onClick={() => handleToggle(p, !enabled)}
+                disabled={saving === p.id}
+                title={t("activation.toggleHint")}
+                aria-label={t("activation.toggleHint")}
+              >
+                <span className="switch-thumb" />
+              </button>
             </div>
           </div>
         );

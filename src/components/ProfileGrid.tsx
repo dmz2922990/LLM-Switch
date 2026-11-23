@@ -1,6 +1,7 @@
 import { useTranslation } from "react-i18next";
 import type { Profile, ReminderConfig, SyncHistory } from "../types";
 import { ProfileCard } from "./ProfileCard";
+import { IconPlus, IconSliders } from "./icons";
 
 interface Props {
   profiles: Profile[];
@@ -13,7 +14,9 @@ interface Props {
   onDelete: (id: string) => void;
   onReorder: (orderedIds: string[]) => void;
   onRenamed: () => void;
+  onNewProfile: () => void;
   onOpenSyncHistory: () => void;
+  onError: (msg: string) => void;
   syncingId: string | null;
   syncSummaries: Record<string, SyncHistory>;
   latestSyncId: string | null;
@@ -24,7 +27,8 @@ interface Props {
 
 export function ProfileGrid({
   profiles, selectedId, onSelect, onSwitchActive, onOpenSettings,
-  onSync, onCopy, onDelete, onReorder, onRenamed, onOpenSyncHistory, syncingId,
+  onSync, onCopy, onDelete, onReorder, onRenamed, onNewProfile,
+  onOpenSyncHistory, onError, syncingId,
   syncSummaries, latestSyncId, flashProfileId, hostNames, reminderConfigs,
 }: Props) {
   const { t } = useTranslation();
@@ -37,13 +41,23 @@ export function ProfileGrid({
     onReorder(reordered.map((p) => p.id));
   };
 
+  if (profiles.length === 0) {
+    return (
+      <div className="empty-card">
+        <div className="empty-card-icon">
+          <IconSliders size={22} />
+        </div>
+        <p className="empty-card-title">{t("sidebar.noProfiles")}</p>
+        <button className="btn btn--primary" onClick={onNewProfile}>
+          <IconPlus size={15} />
+          <span>{t("sidebar.createFirst")}</span>
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="profile-grid">
-      {profiles.length === 0 && (
-        <div className="empty-state" style={{ gridColumn: "1 / -1", padding: 32 }}>
-          <p>{t("sidebar.noProfiles")}</p>
-        </div>
-      )}
       {profiles.map((p, idx) => (
         <ProfileCard
           key={p.id}
@@ -60,6 +74,7 @@ export function ProfileGrid({
           onMove={handleMove}
           onRenamed={onRenamed}
           onOpenSyncHistory={onOpenSyncHistory}
+          onError={onError}
           syncing={syncingId === p.id}
           latestSync={latestSyncId === p.id ? (syncSummaries[p.id] ?? null) : null}
           flash={flashProfileId === p.id}

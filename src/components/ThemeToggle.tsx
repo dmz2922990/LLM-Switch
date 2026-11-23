@@ -7,7 +7,7 @@ export function ThemeToggle() {
   const theme = useTheme();
   return (
     <button
-      className="icon-btn"
+      className="topbar-util-btn"
       onClick={toggleTheme}
       title={t("common.themeToggle")}
       aria-label={t("common.themeToggle")}

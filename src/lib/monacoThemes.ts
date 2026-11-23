@@ -1,71 +1,73 @@
-// Monaco themes aligned to the bench-instrument tokens (term-bg / ink / signal).
+// Monaco themes aligned to the modern Linear/Raycast-inspired palette.
 // Canvas-based editor cannot read CSS vars, so colors are hardcoded per theme.
 
-const sharedJsonRules = [
-  { token: "string.key.json", foreground: "4fd6c2" },
-  { token: "string.value.json", foreground: "7ee787" },
-  { token: "number", foreground: "f2a65a" },
-  { token: "keyword.json", foreground: "c792ea" },
-  { token: "delimiter", foreground: "9aa0ad" },
+const darkJsonRules = [
+  { token: "string.key.json", foreground: "8b95ff" },
+  { token: "string.value.json", foreground: "5eead4" },
+  { token: "number", foreground: "fbbf24" },
+  { token: "keyword.json", foreground: "c084fc" },
+  { token: "delimiter", foreground: "6b7280" },
+];
+
+const lightJsonRules = [
+  { token: "string.key.json", foreground: "4f46e5" },
+  { token: "string.value.json", foreground: "047857" },
+  { token: "number", foreground: "b45309" },
+  { token: "keyword.json", foreground: "7c3aed" },
+  { token: "delimiter", foreground: "64748b" },
 ];
 
 const darkColors: Record<string, string> = {
-  "editor.background": "#0e1014",
-  "editor.foreground": "#e6e9ef",
-  "editorLineNumber.foreground": "#5c6270",
-  "editorLineNumber.activeForeground": "#9aa0ad",
-  "editor.selectionBackground": "rgba(79, 214, 194, 0.26)",
-  "editor.inactiveSelectionBackground": "rgba(79, 214, 194, 0.14)",
-  "editor.lineHighlightBackground": "#1b1e24",
-  "editorCursor.foreground": "#4fd6c2",
-  "editorBracketMatch.background": "rgba(79, 214, 194, 0.18)",
-  "editorBracketMatch.border": "#4fd6c2",
-  "editorSuggestWidget.background": "#1b1e24",
-  "editorSuggestWidget.selectedBackground": "#232730",
-  "editorSuggestWidget.border": "#2e333c",
-  "editorWidget.background": "#1b1e24",
-  "editorWidget.border": "#2e333c",
-  "editor.findMatchBackground": "rgba(242, 166, 90, 0.3)",
-  "editorIndentGuide.background1": "#232730",
+  "editor.background": "#0a0b0e",
+  "editor.foreground": "#f0f2f5",
+  "editorLineNumber.foreground": "#4b5263",
+  "editorLineNumber.activeForeground": "#949ba8",
+  "editor.selectionBackground": "rgba(110, 123, 242, 0.28)",
+  "editor.inactiveSelectionBackground": "rgba(110, 123, 242, 0.14)",
+  "editor.lineHighlightBackground": "#13151a",
+  "editorCursor.foreground": "#818cf8",
+  "editorBracketMatch.background": "rgba(110, 123, 242, 0.2)",
+  "editorBracketMatch.border": "#6e7bf2",
+  "editorSuggestWidget.background": "#13151a",
+  "editorSuggestWidget.selectedBackground": "#1e222b",
+  "editorSuggestWidget.border": "#262a35",
+  "editorWidget.background": "#13151a",
+  "editorWidget.border": "#262a35",
+  "editor.findMatchBackground": "rgba(251, 191, 36, 0.28)",
+  "editorIndentGuide.background1": "#1c1f28",
 };
 
 const lightColors: Record<string, string> = {
-  "editor.background": "#fbfaf5",
-  "editor.foreground": "#2b2e33",
-  "editorLineNumber.foreground": "#8b9099",
-  "editorLineNumber.activeForeground": "#5b616e",
-  "editor.selectionBackground": "rgba(12, 127, 115, 0.2)",
-  "editor.inactiveSelectionBackground": "rgba(12, 127, 115, 0.1)",
-  "editor.lineHighlightBackground": "#ffffff",
-  "editorCursor.foreground": "#0c7f73",
-  "editorBracketMatch.background": "rgba(12, 127, 115, 0.16)",
-  "editorBracketMatch.border": "#0c7f73",
+  "editor.background": "#f9fafb",
+  "editor.foreground": "#111827",
+  "editorLineNumber.foreground": "#9ca3af",
+  "editorLineNumber.activeForeground": "#4b5563",
+  "editor.selectionBackground": "rgba(79, 70, 229, 0.16)",
+  "editor.inactiveSelectionBackground": "rgba(79, 70, 229, 0.08)",
+  "editor.lineHighlightBackground": "#f1f3f6",
+  "editorCursor.foreground": "#4f46e5",
+  "editorBracketMatch.background": "rgba(79, 70, 229, 0.14)",
+  "editorBracketMatch.border": "#4f46e5",
   "editorSuggestWidget.background": "#ffffff",
-  "editorSuggestWidget.selectedBackground": "#efebe2",
-  "editorSuggestWidget.border": "#ddd8cb",
+  "editorSuggestWidget.selectedBackground": "#f1f3f6",
+  "editorSuggestWidget.border": "#e5e7eb",
   "editorWidget.background": "#ffffff",
-  "editorWidget.border": "#ddd8cb",
-  "editor.findMatchBackground": "rgba(176, 106, 22, 0.28)",
-  "editorIndentGuide.background1": "#e4dfd3",
+  "editorWidget.border": "#e5e7eb",
+  "editor.findMatchBackground": "rgba(217, 119, 6, 0.22)",
+  "editorIndentGuide.background1": "#e5e7eb",
 };
 
 export function defineMonacoThemes(monaco: any) {
   monaco.editor.defineTheme("llm-dark", {
     base: "vs-dark",
     inherit: true,
-    rules: sharedJsonRules,
+    rules: darkJsonRules,
     colors: darkColors,
   });
   monaco.editor.defineTheme("llm-light", {
     base: "vs",
     inherit: true,
-    rules: [
-      { token: "string.key.json", foreground: "0c7f73" },
-      { token: "string.value.json", foreground: "187a43" },
-      { token: "number", foreground: "b06a16" },
-      { token: "keyword.json", foreground: "8445c0" },
-      { token: "delimiter", foreground: "5b616e" },
-    ],
+    rules: lightJsonRules,
     colors: lightColors,
   });
 }

@@ -15,7 +15,9 @@
     "retry": "重试",
     "themeToggle": "切换主题",
     "settings": "设置",
-    "sync": "同步"
+    "sync": "同步",
+    "more": "更多操作",
+    "close": "关闭"
   },
   "globalSettings": {
     "title": "全局设置",
@@ -42,7 +44,14 @@
     "autoClose": "自动关闭",
     "seconds": "秒",
     "peakStart": "波峰时段开始",
-    "peakPeriod": "当前处于波峰时段"
+    "peakPeriod": "当前处于波峰时段",
+    "day1": "一",
+    "day2": "二",
+    "day3": "三",
+    "day4": "四",
+    "day5": "五",
+    "day6": "六",
+    "day7": "日"
   },
   "syncHost": {
     "title": "选择同步主机",
@@ -68,7 +77,12 @@
     "confirmCopy": "确认复制此档案？",
     "confirmAction": "确认操作",
     "language": "语言",
-    "sort": "调整顺序"
+    "sort": "调整顺序",
+    "moveUp": "上移",
+    "moveDown": "下移",
+    "profileCount": "{{count}} 个档案",
+    "defaultHostLabel": "默认同步",
+    "unconfigured": "未配置 API 端点"
   },
   "editor": {
     "invalidJson": "JSON 格式无效，请检查语法",
@@ -85,7 +99,10 @@
     "quickOpusModel": "Opus Model",
     "contextCopy": "复制",
     "contextCut": "剪切",
-    "contextSelectAll": "全选"
+    "contextSelectAll": "全选",
+    "quickSettings": "快速设置",
+    "showToken": "显示 Token",
+    "hideToken": "隐藏 Token"
   },
   "sync": {
     "title": "远程同步",

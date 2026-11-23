@@ -4,6 +4,7 @@ import type { Host } from "../types";
 import { api } from "../api";
 import { Dialog } from "./Dialog";
 import { ConfirmDialog } from "./ConfirmDialog";
+import { IconPlus, IconServer } from "./icons";
 
 interface Props {
   hosts: Host[];
@@ -43,12 +44,12 @@ function HostForm({ editing, form, setForm, onSave, onCancel }: {
     >
       <div className="form-group">
         <label>{t("host.name")}</label>
-        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Production VM" />
       </div>
       <div className="form-row">
         <div className="form-group" style={{ flex: 3 }}>
           <label>{t("host.address")}</label>
-          <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} />
+          <input value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="192.168.1.10" />
         </div>
         <div className="form-group" style={{ flex: 1 }}>
           <label>{t("host.port")}</label>
@@ -57,7 +58,7 @@ function HostForm({ editing, form, setForm, onSave, onCancel }: {
       </div>
       <div className="form-group">
         <label>{t("host.username")}</label>
-        <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+        <input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} placeholder="root" />
       </div>
       <div className="form-group">
         <label>{t("host.authType")}</label>
@@ -77,7 +78,7 @@ function HostForm({ editing, form, setForm, onSave, onCancel }: {
           <input value={form.key_path} onChange={(e) => setForm({ ...form, key_path: e.target.value })} placeholder="~/.ssh/id_rsa" />
         </div>
       )}
-      <div className="form-group">
+      <div className="form-group" style={{ marginBottom: 0 }}>
         <label>{t("host.remotePath")}</label>
         <input value={form.remote_path} onChange={(e) => setForm({ ...form, remote_path: e.target.value })} />
       </div>
@@ -186,25 +187,42 @@ export function HostManager({ hosts, onRefresh, embedded }: Props) {
   };
 
   return (
-    <div className="scroll-area">
+    <div className="gst-scroll">
       <div className="panel-header">
         {!embedded && <h2 className="panel-title">{t("host.title")}</h2>}
-        <button className="btn btn--primary btn--sm" style={{ marginLeft: "auto" }} onClick={() => { resetForm(); setShowAdd(true); }}>{t("host.addHost")}</button>
+        <button
+          className="btn btn--primary btn--sm"
+          style={{ marginLeft: "auto" }}
+          onClick={() => { resetForm(); setShowAdd(true); }}
+        >
+          <IconPlus size={13} />
+          <span>{t("host.addHost")}</span>
+        </button>
       </div>
+
       {hosts.length === 0 ? (
-        <div className="empty-state"><p>{t("host.noHosts")}</p></div>
+        <div className="empty-inline">
+          <div className="empty-card-icon">
+            <IconServer size={20} />
+          </div>
+          <p>{t("host.noHosts")}</p>
+        </div>
       ) : (
         <div className="host-list">
           {hosts.map((h) => (
             <div key={h.id} className="host-card">
               <div className="host-info">
-                <div className="host-name">
-                  {h.name}
+                <div className="host-name-row">
+                  <span className="host-name">{h.name}</span>
                   {h.is_default && <span className="default-badge">{t("sync.defaultHost")}</span>}
                 </div>
-                <div className="host-detail">{h.username}@{h.address}:{h.port} → {h.remote_path}</div>
+                <div className="host-detail">
+                  <span>{h.username}@{h.address}:{h.port}</span>
+                  <span className="host-detail-sep">→</span>
+                  <span className="host-detail-path">{h.remote_path}</span>
+                </div>
                 {testResult[h.id] && (
-                  <div className={`host-test-result ${testResult[h.id] === "success" ? "is-success" : "is-error"}`}>
+                  <div className={`host-test-result ${testResult[h.id] === "success" ? "is-success" : testResult[h.id] === "testing..." ? "is-testing" : "is-error"}`}>
                     {testResult[h.id] === "success" ? t("host.connected") : testResult[h.id]}
                   </div>
                 )}
@@ -229,6 +247,7 @@ export function HostManager({ hosts, onRefresh, embedded }: Props) {
           ))}
         </div>
       )}
+
       {showAdd && <HostForm editing={null} form={form} setForm={setForm} onSave={handleAdd} onCancel={() => { setShowAdd(false); resetForm(); }} />}
       {editing && <HostForm editing={editing} form={form} setForm={setForm} onSave={handleEdit} onCancel={() => { setEditing(null); resetForm(); }} />}
       {deletingId && (
